@@ -26,8 +26,6 @@ const SongCard = ({ song, queue }: Props) => {
   const [feedback, setFeedback] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // =================== CERRAR MENÚ AL HACER CLIC FUERA ===================
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -55,20 +53,19 @@ const SongCard = ({ song, queue }: Props) => {
 
   return (
     <div
-      className="group relative flex flex-col gap-3 p-4 rounded-xl cursor-pointer transition-colors"
+      className="group relative flex flex-col cursor-pointer transition-colors"
       style={{
         background: isCurrentSong
           ? "var(--bg-tertiary)"
           : "var(--bg-secondary)",
         border: `1px solid ${isCurrentSong ? "var(--accent)" : "var(--border)"}`,
-        padding: "10px",
+        borderRadius: "1rem",
+        padding: "0.875rem",
+        gap: "0.75rem",
       }}
       onClick={() => {
-        if (isCurrentSong) {
-          togglePlay();
-        } else {
-          playSong(song, queue);
-        }
+        if (isCurrentSong) togglePlay();
+        else playSong(song, queue);
       }}
       onMouseEnter={(e) => {
         if (!isCurrentSong)
@@ -79,11 +76,10 @@ const SongCard = ({ song, queue }: Props) => {
           e.currentTarget.style.background = "var(--bg-secondary)";
       }}
     >
-      {/* =================== COVER =================== */}
-
+      {/* ========== COVER ========== */}
       <div
-        className="relative w-full rounded-lg overflow-hidden"
-        style={{ height: "160px", background: "var(--bg-tertiary)" }}
+        className="relative w-full rounded-xl overflow-hidden"
+        style={{ aspectRatio: "1", background: "var(--bg-tertiary)" }}
       >
         {song.coverUrl ? (
           <img
@@ -93,42 +89,52 @@ const SongCard = ({ song, queue }: Props) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span style={{ fontSize: 36, color: "var(--accent)" }}>♪</span>
+            <span
+              style={{
+                fontSize: "clamp(28px, 7vw, 40px)",
+                color: "var(--accent)",
+              }}
+            >
+              ♪
+            </span>
           </div>
         )}
 
-        {/* =================== BOTÓN PLAY/PAUSE =================== */}
+        {/* Play overlay */}
         <div
           className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ background: "rgba(8,13,18,0.5)" }}
+          style={{ background: "rgba(8,13,18,0.55)" }}
         >
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: "var(--accent)" }}
+            className="flex items-center justify-center rounded-full transition-transform hover:scale-105"
+            style={{
+              background: "var(--accent)",
+              width: "40px",
+              height: "40px",
+            }}
             onClick={(e) => {
               e.stopPropagation();
-              if (isCurrentSong) {
-                togglePlay();
-              } else {
-                playSong(song, queue);
-              }
+              isCurrentSong ? togglePlay() : playSong(song, queue);
             }}
           >
             {isCurrentSong && isPlaying ? (
-              <Pause size={18} style={{ color: "#080d12" }} />
+              <Pause size={17} style={{ color: "#080d12" }} />
             ) : (
-              <Play size={18} style={{ color: "#080d12", marginLeft: 2 }} />
+              <Play size={17} style={{ color: "#080d12", marginLeft: 2 }} />
             )}
           </div>
         </div>
       </div>
 
-      {/* =================== INFO =================== */}
-
-      <div className="flex flex-col gap-1.5 overflow-hidden px-1">
-        <div className="flex items-start justify-between gap-1">
+      {/* ========== INFO ========== */}
+      <div className="flex flex-col overflow-hidden" style={{ gap: "0.3rem" }}>
+        {/* Título + like */}
+        <div
+          className="flex items-start justify-between"
+          style={{ gap: "0.5rem" }}
+        >
           <p
-            className="text-sm font-semibold truncate"
+            className="text-sm font-semibold truncate leading-snug flex-1 min-w-0"
             style={{
               color: isCurrentSong ? "var(--accent)" : "var(--text-primary)",
             }}
@@ -137,32 +143,42 @@ const SongCard = ({ song, queue }: Props) => {
           </p>
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              liked ? unlikeSong(song.id) : likeSong(song.id)
+              e.stopPropagation();
+              liked ? unlikeSong(song.id) : likeSong(song.id);
             }}
-            className="flex-shrink-0 transition-transform hover:scale-110"
-            style={{ color: liked ? 'var(--accent)' : 'var(--text-muted)', padding: '5px' }}
+            className="shrink-0 transition-transform hover:scale-110"
+            style={{
+              color: liked ? "var(--accent)" : "var(--text-muted)",
+              padding: "2px",
+              marginTop: "1px",
+            }}
           >
-            <Heart size={18} fill={liked ? 'var(--accent)' : 'none'} />
+            <Heart size={14} fill={liked ? "var(--accent)" : "none"} />
           </button>
         </div>
+
+        {/* Artista */}
         <p
           className="text-xs truncate"
           style={{ color: "var(--text-secondary)" }}
         >
           {song.author.name}
         </p>
-        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+
+        {/* Duración */}
+        <p
+          className="text-xs"
+          style={{ color: "var(--text-muted)", marginTop: "0.125rem" }}
+        >
           {formatDuration(song.duration)}
         </p>
       </div>
 
-      {/* =================== BOTÓN OPCIONES =================== */}
-
+      {/* ========== MENÚ OPCIONES ========== */}
       <div className="relative" ref={menuRef}>
         <button
-          className="absolute bottom-0 right-0 p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-          style={{ color: "var(--text-secondary)" }}
+          className="absolute opacity-0 group-hover:opacity-100 transition-all p-1 rounded-lg"
+          style={{ color: "var(--text-secondary)", bottom: 0, right: 0 }}
           onClick={(e) => {
             e.stopPropagation();
             setMenuOpen(!menuOpen);
@@ -174,40 +190,49 @@ const SongCard = ({ song, queue }: Props) => {
             (e.currentTarget.style.color = "var(--text-secondary)")
           }
         >
-          <MoreVertical size={16} />
+          <MoreVertical size={15} />
         </button>
 
-        {/* =================== DROPDOWN MENÚ =================== */}
         {menuOpen && (
           <div
-            className="absolute bottom-8 right-0 z-50 min-w-48 rounded-xl py-1 shadow-xl"
+            className="absolute z-50 rounded-xl shadow-xl"
             style={{
+              bottom: "1.75rem",
+              right: 0,
+              minWidth: "11rem",
               background: "var(--bg-tertiary)",
               border: "1px solid var(--border)",
-              padding: "10px",
+              padding: "0.5rem",
             }}
           >
             <p
-              className="px-3 py-2 text-xs font-semibold uppercase tracking-wider"
-              style={{ color: "var(--text-muted)", paddingBottom: "5px" }}
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{
+                color: "var(--text-muted)",
+                padding: "0.375rem 0.75rem 0.5rem",
+              }}
             >
               Agregar a playlist
             </p>
-
             {playlists.length === 0 && (
               <p
-                className="px-3 py-2 text-xs"
-                style={{ color: "var(--text-muted)" }}
+                className="text-xs"
+                style={{
+                  color: "var(--text-muted)",
+                  padding: "0.375rem 0.75rem",
+                }}
               >
                 No tienes playlists
               </p>
             )}
-
             {playlists.map((playlist) => (
               <button
                 key={playlist.id}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors"
-                style={{ color: "var(--text-primary)", paddingTop: "5px" }}
+                className="w-full flex items-center gap-2 text-sm text-left rounded-lg transition-colors"
+                style={{
+                  color: "var(--text-primary)",
+                  padding: "0.5rem 0.75rem",
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAddToPlaylist(playlist.id, playlist.title);
@@ -219,23 +244,26 @@ const SongCard = ({ song, queue }: Props) => {
                   (e.currentTarget.style.background = "transparent")
                 }
               >
-                <Plus size={14} style={{ color: "var(--accent)" }} />
-                {playlist.title}
+                <Plus
+                  size={13}
+                  style={{ color: "var(--accent)", flexShrink: 0 }}
+                />
+                <span className="truncate">{playlist.title}</span>
               </button>
             ))}
           </div>
         )}
       </div>
 
-      {/* =================== FEEDBACK TOAST =================== */}
+      {/* ========== FEEDBACK TOAST ========== */}
       {feedback && (
         <div
-          className="absolute bottom-2 left-2 right-2 text-center text-xs py-1.5 px-2 rounded-lg z-10"
+          className="absolute inset-x-2 bottom-2 text-center text-xs rounded-lg z-10"
           style={{
             background: "var(--accent)",
             color: "#080d12",
-            fontWeight: 500,
-            padding: "5px",
+            fontWeight: 600,
+            padding: "0.375rem 0.5rem",
           }}
         >
           {feedback}

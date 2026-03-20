@@ -8,40 +8,56 @@ const SearchPage = () => {
   const { results, isLoading } = useSearch(query);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Título */}
-      <div>
+    <div className="flex flex-col" style={{ gap: "1.75rem" }}>
+      {/* ========== TÍTULO ========== */}
+      <div style={{ paddingTop: "0.25rem" }}>
         <h1
-          className="text-2xl font-bold"
-          style={{ color: "var(--text-primary)" }}
+          className="font-bold"
+          style={{
+            color: "var(--text-primary)",
+            fontSize: "clamp(1.5rem, 4vw, 2rem)",
+            lineHeight: 1.2,
+          }}
         >
           Buscar
         </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+        <p
+          style={{
+            color: "var(--text-secondary)",
+            fontSize: "0.9375rem",
+            marginTop: "0.375rem",
+          }}
+        >
           Encuentra canciones por título o artista
         </p>
       </div>
 
-      {/* Input de búsqueda */}
-      <div className="relative max-w-md">
+      {/* ========== INPUT ========== */}
+      <div style={{ position: "relative", maxWidth: "480px" }}>
         <Search
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2"
-          style={{ color: "var(--text-muted)" }}
+          size={15}
+          style={{
+            color: "var(--text-muted)",
+            position: "absolute",
+            left: "0.875rem",
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
         />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="¿Qué quieres escuchar?"
-          className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm outline-none transition-colors"
+          className="w-full rounded-xl text-sm outline-none transition-colors"
           style={{
+            paddingLeft: "2.5rem",
+            paddingRight: query ? "2.5rem" : "1rem",
+            paddingTop: "0.75rem",
+            paddingBottom: "0.75rem",
             background: "var(--bg-secondary)",
             color: "var(--text-primary)",
             border: "1px solid var(--border)",
-            paddingLeft: '35px',
-            paddingTop: '5px',
-            paddingBottom: '5px',
           }}
           onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
           onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
@@ -50,8 +66,13 @@ const SearchPage = () => {
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-            style={{ color: "var(--text-muted)" }}
+            style={{
+              color: "var(--text-muted)",
+              position: "absolute",
+              right: "0.875rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.color = "var(--text-primary)")
             }
@@ -59,52 +80,61 @@ const SearchPage = () => {
               (e.currentTarget.style.color = "var(--text-muted)")
             }
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         )}
       </div>
 
-      {/* Estado vacío — sin query */}
+      {/* ========== ESTADO VACÍO ========== */}
       {!query && (
         <div
-          className="flex flex-col items-center gap-3 py-20 rounded-xl"
+          className="flex flex-col items-center justify-center"
           style={{
+            gap: "0.875rem",
+            padding: "5rem 2rem",
             background: "var(--bg-secondary)",
             border: "1px solid var(--border)",
-            paddingTop: '10px',
-            paddingBottom: '10px',
+            borderRadius: "1rem",
           }}
         >
           <Search size={40} style={{ color: "var(--text-muted)" }} />
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
             Escribe algo para buscar
           </p>
         </div>
       )}
 
-      {/* Cargando */}
+      {/* ========== CARGANDO ========== */}
       {query && isLoading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(168px, 1fr))",
+            gap: "1.25rem",
+          }}
+        >
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-xl p-4 flex flex-col gap-3 animate-pulse"
+              className="rounded-2xl animate-pulse flex flex-col"
               style={{
                 background: "var(--bg-secondary)",
                 border: "1px solid var(--border)",
+                padding: "0.875rem",
+                gap: "0.75rem",
               }}
             >
               <div
-                className="w-full aspect-square rounded-lg"
+                className="w-full aspect-square rounded-xl"
                 style={{ background: "var(--bg-tertiary)" }}
               />
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col" style={{ gap: "0.5rem" }}>
                 <div
-                  className="h-3 rounded w-3/4"
+                  className="h-3 rounded-full w-3/4"
                   style={{ background: "var(--bg-tertiary)" }}
                 />
                 <div
-                  className="h-3 rounded w-1/2"
+                  className="h-3 rounded-full w-1/2"
                   style={{ background: "var(--bg-tertiary)" }}
                 />
               </div>
@@ -113,30 +143,41 @@ const SearchPage = () => {
         </div>
       )}
 
-      {/* Sin resultados */}
+      {/* ========== SIN RESULTADOS ========== */}
       {query && !isLoading && results.length === 0 && (
         <div
-          className="flex flex-col items-center gap-3 py-20 rounded-xl"
+          className="flex flex-col items-center justify-center"
           style={{
+            gap: "0.875rem",
+            padding: "5rem 2rem",
             background: "var(--bg-secondary)",
             border: "1px solid var(--border)",
+            borderRadius: "1rem",
           }}
         >
-          <span style={{ fontSize: 40, color: "var(--text-muted)" }}>♪</span>
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <span style={{ fontSize: "2.5rem", color: "var(--text-muted)" }}>
+            ♪
+          </span>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
             No se encontraron canciones para "{query}"
           </p>
         </div>
       )}
 
-      {/* Resultados */}
+      {/* ========== RESULTADOS ========== */}
       {query && !isLoading && results.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+        <div className="flex flex-col" style={{ gap: "1.25rem" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
             {results.length} resultado{results.length !== 1 ? "s" : ""} para "
             {query}"
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: "repeat(auto-fill, minmax(168px, 1fr))",
+              gap: "1.25rem",
+            }}
+          >
             {results.map((song) => (
               <SongCard key={song.id} song={song} queue={results} />
             ))}

@@ -1,63 +1,99 @@
-import { Home, Search, Library, Plus } from "lucide-react";
+import { Home, Search, Library, Plus, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { usePlaylistStore } from "../../store/playlistStore";
 
-const Sidebar = () => {
+interface Props {
+  onClose?: () => void;
+}
+
+const Sidebar = ({ onClose }: Props) => {
   const { user, logout } = useAuthStore();
   const { playlists } = usePlaylistStore();
   const navigate = useNavigate();
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    onClose?.();
+  };
+
   return (
     <aside
-      className="flex flex-col h-full w-64 p-6 gap-4"
+      className="flex flex-col h-full"
       style={{
+        width: "16rem",
         background: "var(--bg-secondary)",
         borderRight: "1px solid var(--border)",
-        paddingLeft: '10px',
-        paddingRight: '10px'
+        padding: "1.25rem 0.875rem",
       }}
     >
-      {/* Logo */}
-      <div className="flex items-center gap-2 px-1 py-2" 
-        style={{ paddingTop: '10px' }} 
-        >
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: "var(--accent)" }}
-        >
-          <span style={{ fontSize: 16, color: "#080d12", fontWeight: 700 }}>
-            A
+      {/* ========== LOGO ========== */}
+      <div
+        className="flex items-center justify-between"
+        style={{ marginBottom: "1.75rem" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center justify-center rounded-full shrink-0"
+            style={{
+              width: "36px",
+              height: "36px",
+              background: "var(--accent)",
+            }}
+          >
+            <span style={{ fontSize: 15, color: "#080d12", fontWeight: 700 }}>
+              A
+            </span>
+          </div>
+          <span
+            className="font-bold text-xl tracking-wide"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Arctic
           </span>
         </div>
-        <span className="text-text-primary font-bold text-xl tracking-wide">
-          Arctic
-        </span>
+        <button
+          onClick={onClose}
+          className="md:hidden p-1 rounded-lg transition-colors"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.color = "var(--text-primary)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.color = "var(--text-muted)")
+          }
+        >
+          <X size={18} />
+        </button>
       </div>
 
-      {/* Navegación */}
-      <nav className="flex flex-col gap-1.5">
+      {/* ========== NAV ========== */}
+      <nav
+        className="flex flex-col"
+        style={{ gap: "0.25rem", marginBottom: "1.5rem" }}
+      >
         {[
-          { to: "/", label: "Inicio", icon: <Home size={20} />, end: true },
-          { to: "/search", label: "Buscar", icon: <Search size={20} /> },
+          { to: "/", label: "Inicio", icon: <Home size={19} />, end: true },
+          { to: "/search", label: "Buscar", icon: <Search size={19} /> },
           {
             to: "/library",
             label: "Tu biblioteca",
-            icon: <Library size={20} />,
+            icon: <Library size={19} />,
           },
         ].map(({ to, label, icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
+            onClick={() => onClose?.()}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors text-sm font-medium ${
+              `flex items-center gap-3 rounded-xl transition-colors text-sm font-medium ${
                 isActive
                   ? "bg-bg-tertiary text-accent"
                   : "text-text-secondary hover:text-text-primary hover:bg-bg-tertiary"
               }`
             }
-            style={{ padding: '5px' }}
+            style={{ padding: "0.625rem 0.75rem" }}
           >
             {icon}
             {label}
@@ -65,12 +101,22 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="border-t border-border" />
+      <div
+        style={{
+          borderTop: "1px solid var(--border)",
+          marginBottom: "1.25rem",
+        }}
+      />
 
-      {/* PLAYLIST */}
-
-      <div className="flex flex-col gap-3 flex-1 overflow-hidden">
-        <div className="flex items-center justify-between px-1">
+      {/* ========== PLAYLISTS ========== */}
+      <div
+        className="flex flex-col flex-1 overflow-hidden"
+        style={{ gap: "0.75rem" }}
+      >
+        <div
+          className="flex items-center justify-between"
+          style={{ padding: "0 0.25rem" }}
+        >
           <span
             className="text-xs font-semibold uppercase tracking-widest"
             style={{ color: "var(--text-muted)" }}
@@ -78,9 +124,8 @@ const Sidebar = () => {
             Playlists
           </span>
           <button
-            className="transition-colors"
             style={{ color: "var(--text-muted)" }}
-            onClick={() => navigate("/library")}
+            onClick={() => handleNavigate("/library")}
             onMouseEnter={(e) =>
               (e.currentTarget.style.color = "var(--accent)")
             }
@@ -92,11 +137,14 @@ const Sidebar = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto flex flex-col gap-0.5">
+        <div
+          className="flex-1 overflow-y-auto flex flex-col"
+          style={{ gap: "0.125rem" }}
+        >
           {playlists.length === 0 && (
             <p
-              className="text-xs px-1 py-1"
-              style={{ color: "var(--text-muted)" }}
+              className="text-xs"
+              style={{ color: "var(--text-muted)", padding: "0.25rem 0.5rem" }}
             >
               Aún no tienes playlists
             </p>
@@ -104,9 +152,12 @@ const Sidebar = () => {
           {playlists.map((playlist) => (
             <button
               key={playlist.id}
-              onClick={() => navigate(`/playlist/${playlist.id}`)}
-              className="text-left px-3 py-2 rounded-lg text-sm truncate transition-colors w-full"
-              style={{ color: "var(--text-secondary)" }}
+              onClick={() => handleNavigate(`/playlist/${playlist.id}`)}
+              className="text-left truncate w-full rounded-lg text-sm transition-colors"
+              style={{
+                color: "var(--text-secondary)",
+                padding: "0.5rem 0.75rem",
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "var(--bg-tertiary)";
                 e.currentTarget.style.color = "var(--text-primary)";
@@ -122,14 +173,23 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Usuario */}
-      <div className="border-t border-border pt-4 flex items-center justify-between gap-2"
-        style={{ paddingTop: '7px', paddingBottom: '7px' }}
+      {/* ========== USUARIO ========== */}
+      <div
+        className="flex items-center justify-between gap-2"
+        style={{
+          borderTop: "1px solid var(--border)",
+          paddingTop: "1rem",
+          marginTop: "0.5rem",
+        }}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--bg-tertiary)" }}
+            className="rounded-full flex items-center justify-center shrink-0"
+            style={{
+              width: "32px",
+              height: "32px",
+              background: "var(--bg-tertiary)",
+            }}
           >
             <span
               className="text-xs font-bold"
@@ -146,11 +206,16 @@ const Sidebar = () => {
           </span>
         </div>
         <button
-          onClick={logout}
-          className="text-xs flex-shrink-0 transition-colors"
-          style={{  color: 'var(--text-muted)' }}
-          onMouseEnter={ (e) => e.currentTarget.style.color = 'var(--accent)' }
-          onMouseLeave={ (e) => e.currentTarget.style.color = 'var(--text-muted)' }
+          onClick={() => {
+            logout();
+            onClose?.();
+          }}
+          className="text-xs shrink-0 transition-colors"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent)")}
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.color = "var(--text-muted)")
+          }
         >
           Salir
         </button>

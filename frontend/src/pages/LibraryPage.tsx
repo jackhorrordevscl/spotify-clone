@@ -24,40 +24,59 @@ const LibraryPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col" style={{ gap: "1.75rem" }}>
+      {/* ========== HEADER ========== */}
+      <div
+        className="flex items-center justify-between"
+        style={{ gap: "1rem", paddingTop: "0.25rem" }}
+      >
         <div>
           <h1
-            className="text-2xl font-bold"
-            style={{ color: "var(--text-primary)" }}
+            className="font-bold"
+            style={{
+              color: "var(--text-primary)",
+              fontSize: "clamp(1.5rem, 4vw, 2rem)",
+              lineHeight: 1.2,
+            }}
           >
             Tu biblioteca
           </h1>
           <p
-            className="text-sm mt-1"
-            style={{ color: "var(--text-secondary)" }}
+            style={{
+              color: "var(--text-secondary)",
+              fontSize: "0.9375rem",
+              marginTop: "0.375rem",
+            }}
           >
             {playlists.length} playlist{playlists.length !== 1 ? "s" : ""}
           </p>
         </div>
         <button
           onClick={() => setShowInput(!showInput)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          style={{ background: "var(--accent)", color: "#080d12", padding: '7px' }}
+          className="flex items-center gap-2 rounded-xl font-medium shrink-0 transition-opacity hover:opacity-90"
+          style={{
+            background: "var(--accent)",
+            color: "#080d12",
+            fontSize: "0.875rem",
+            padding: "0.625rem 1.125rem",
+          }}
         >
-          <Plus size={16} />
-          Nueva playlist
+          <Plus size={15} />
+          <span className="hidden sm:inline">Nueva playlist</span>
+          <span className="sm:hidden">Nueva</span>
         </button>
       </div>
 
-      {/* Input nueva playlist */}
+      {/* ========== INPUT NUEVA PLAYLIST ========== */}
       {showInput && (
         <div
-          className="flex gap-2 p-4 rounded-xl"
+          className="flex flex-col sm:flex-row"
           style={{
+            gap: "0.75rem",
+            padding: "1rem",
             background: "var(--bg-secondary)",
             border: "1px solid var(--border)",
+            borderRadius: "0.875rem",
           }}
         >
           <input
@@ -65,8 +84,9 @@ const LibraryPage = () => {
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             placeholder="Nombre de la playlist"
-            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+            className="flex-1 rounded-xl text-sm outline-none"
             style={{
+              padding: "0.625rem 0.875rem",
               background: "var(--bg-tertiary)",
               color: "var(--text-primary)",
               border: "1px solid var(--border)",
@@ -76,58 +96,69 @@ const LibraryPage = () => {
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             autoFocus
           />
-          <button
-            onClick={handleCreate}
-            disabled={isCreating || !newTitle.trim()}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
-            style={{
-              background: "var(--accent)",
-              color: "#080d12",
-              opacity: isCreating || !newTitle.trim() ? 0.5 : 1,
-            }}
-          >
-            {isCreating ? "Creando..." : "Crear"}
-          </button>
-          <button
-            onClick={() => {
-              setShowInput(false);
-              setNewTitle("");
-            }}
-            className="px-3 py-2 rounded-lg text-sm transition-colors"
-            style={{
-              background: "var(--bg-tertiary)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            Cancelar
-          </button>
+          <div className="flex" style={{ gap: "0.5rem" }}>
+            <button
+              onClick={handleCreate}
+              disabled={isCreating || !newTitle.trim()}
+              className="flex-1 sm:flex-none rounded-xl text-sm font-medium transition-opacity"
+              style={{
+                padding: "0.625rem 1.125rem",
+                background: "var(--accent)",
+                color: "#080d12",
+                opacity: isCreating || !newTitle.trim() ? 0.5 : 1,
+              }}
+            >
+              {isCreating ? "Creando..." : "Crear"}
+            </button>
+            <button
+              onClick={() => {
+                setShowInput(false);
+                setNewTitle("");
+              }}
+              className="flex-1 sm:flex-none rounded-xl text-sm"
+              style={{
+                padding: "0.625rem 1rem",
+                background: "var(--bg-tertiary)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Loading */}
+      {/* ========== LOADING ========== */}
       {isLoading && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col" style={{ gap: "0.75rem" }}>
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="h-16 rounded-xl animate-pulse"
-              style={{ background: "var(--bg-secondary)" }}
+              className="animate-pulse"
+              style={{
+                height: "68px",
+                background: "var(--bg-secondary)",
+                borderRadius: "0.875rem",
+              }}
             />
           ))}
         </div>
       )}
 
-      {/* Sin playlists */}
+      {/* ========== SIN PLAYLISTS ========== */}
       {!isLoading && playlists.length === 0 && (
         <div
-          className="flex flex-col items-center gap-3 py-20 rounded-xl"
+          className="flex flex-col items-center justify-center"
           style={{
+            gap: "0.875rem",
+            padding: "5rem 2rem",
             background: "var(--bg-secondary)",
             border: "1px solid var(--border)",
+            borderRadius: "1rem",
           }}
         >
           <Music2 size={40} style={{ color: "var(--text-muted)" }} />
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
             No tienes playlists aún
           </p>
           <button
@@ -140,16 +171,19 @@ const LibraryPage = () => {
         </div>
       )}
 
-      {/* Lista de playlists */}
+      {/* ========== LISTA ========== */}
       {!isLoading && playlists.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col" style={{ gap: "0.625rem" }}>
           {playlists.map((playlist) => (
             <div
               key={playlist.id}
-              className="group flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors"
+              className="group flex items-center cursor-pointer transition-colors"
               style={{
+                gap: "1rem",
+                padding: "0.875rem 1rem",
                 background: "var(--bg-secondary)",
                 border: "1px solid var(--border)",
+                borderRadius: "0.875rem",
               }}
               onClick={() => navigate(`/playlist/${playlist.id}`)}
               onMouseEnter={(e) =>
@@ -161,8 +195,12 @@ const LibraryPage = () => {
             >
               {/* Cover */}
               <div
-                className="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
-                style={{ background: "var(--bg-tertiary)" }}
+                className="shrink-0 flex items-center justify-center rounded-xl overflow-hidden"
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  background: "var(--bg-tertiary)",
+                }}
               >
                 {playlist.coverUrl ? (
                   <img
@@ -176,7 +214,7 @@ const LibraryPage = () => {
               </div>
 
               {/* Info */}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden min-w-0">
                 <p
                   className="text-sm font-medium truncate"
                   style={{ color: "var(--text-primary)" }}
@@ -184,8 +222,11 @@ const LibraryPage = () => {
                   {playlist.title}
                 </p>
                 <p
-                  className="text-xs"
-                  style={{ color: "var(--text-secondary)" }}
+                  style={{
+                    color: "var(--text-secondary)",
+                    fontSize: "0.8125rem",
+                    marginTop: "0.2rem",
+                  }}
                 >
                   {playlist.songs.length} canción
                   {playlist.songs.length !== 1 ? "es" : ""}
@@ -194,7 +235,7 @@ const LibraryPage = () => {
 
               {/* Eliminar */}
               <button
-                className="opacity-0 group-hover:opacity-100 p-2 rounded-lg transition-all"
+                className="opacity-0 group-hover:opacity-100 shrink-0 p-2 rounded-lg transition-all"
                 style={{ color: "var(--text-muted)" }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -205,7 +246,7 @@ const LibraryPage = () => {
                   (e.currentTarget.style.color = "var(--text-muted)")
                 }
               >
-                <Trash2 size={16} />
+                <Trash2 size={15} />
               </button>
             </div>
           ))}

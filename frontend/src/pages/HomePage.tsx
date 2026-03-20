@@ -11,24 +11,31 @@ const HomePage = () => {
   const [showUpload, setShowUpload] = useState(false);
 
   return (
-    <div className="flex flex-col gap-10">
-      {/* HEADER — saludo + botón subir */}
-      <div className="flex items-start justify-between pt-2">
-        <div className="flex flex-col gap-2">
+    <div className="flex flex-col" style={{ gap: "2.5rem" }}>
+      {/* ========== HEADER ========== */}
+      <div
+        className="flex items-start justify-between gap-4"
+        style={{ paddingTop: "0.25rem" }}
+      >
+        <div className="flex flex-col" style={{ gap: "0.5rem" }}>
           <h1
-            className="text-3xl font-bold"
-            style={{ color: "var(--text-primary)" }}
+            className="font-bold"
+            style={{
+              color: "var(--text-primary)",
+              fontSize: "clamp(1.5rem, 4vw, 2rem)",
+              lineHeight: 1.2,
+            }}
           >
             Bienvenido, {user?.name} 👋
           </h1>
-          <p className="text-base" style={{ color: "var(--text-secondary)" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
             ¿Qué quieres escuchar hoy?
           </p>
         </div>
 
         <button
           onClick={() => setShowUpload(true)}
-          className="flex items-center gap-2 rounded-xl text-sm font-medium transition-colors flex-shrink-0"
+          className="flex items-center gap-2 rounded-xl text-sm font-medium transition-colors shrink-0"
           style={{
             padding: "0.625rem 1.25rem",
             background: "var(--bg-secondary)",
@@ -42,42 +49,51 @@ const HomePage = () => {
             (e.currentTarget.style.borderColor = "var(--border)")
           }
         >
-          <Upload size={16} style={{ color: "var(--accent)" }} />
-          Subir canción
+          <Upload size={15} style={{ color: "var(--accent)" }} />
+          <span className="hidden sm:inline">Subir canción</span>
+          <span className="sm:hidden">Subir</span>
         </button>
       </div>
 
-      {/* CANCIONES */}
-      <div className="flex flex-col gap-5">
+      {/* ========== CANCIONES ========== */}
+      <div className="flex flex-col" style={{ gap: "1.25rem" }}>
         <h2
-          className="text-xl font-semibold"
-          style={{ color: "var(--text-primary)" }}
+          className="font-semibold"
+          style={{ color: "var(--text-primary)", fontSize: "1.125rem" }}
         >
           Todas las canciones
         </h2>
 
         {isLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: "repeat(auto-fill, minmax(168px, 1fr))",
+              gap: "1.25rem",
+            }}
+          >
             {Array.from({ length: 10 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-xl p-4 flex flex-col gap-3 animate-pulse"
+                className="rounded-2xl animate-pulse flex flex-col"
                 style={{
                   background: "var(--bg-secondary)",
                   border: "1px solid var(--border)",
+                  padding: "0.875rem",
+                  gap: "0.75rem",
                 }}
               >
                 <div
-                  className="w-full aspect-square rounded-lg"
+                  className="w-full aspect-square rounded-xl"
                   style={{ background: "var(--bg-tertiary)" }}
                 />
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col" style={{ gap: "0.5rem" }}>
                   <div
-                    className="h-3 rounded w-3/4"
+                    className="h-3 rounded-full w-3/4"
                     style={{ background: "var(--bg-tertiary)" }}
                   />
                   <div
-                    className="h-3 rounded w-1/2"
+                    className="h-3 rounded-full w-1/2"
                     style={{ background: "var(--bg-tertiary)" }}
                   />
                 </div>
@@ -94,13 +110,18 @@ const HomePage = () => {
 
         {!isLoading && !error && songs.length === 0 && (
           <div
-            className="flex flex-col items-center gap-3 py-16 rounded-xl"
+            className="flex flex-col items-center"
             style={{
+              gap: "0.75rem",
+              padding: "4rem 2rem",
               background: "var(--bg-secondary)",
               border: "1px solid var(--border)",
+              borderRadius: "1rem",
             }}
           >
-            <span style={{ fontSize: 48, color: "var(--text-muted)" }}>♪</span>
+            <span style={{ fontSize: "3rem", color: "var(--text-muted)" }}>
+              ♪
+            </span>
             <p style={{ color: "var(--text-secondary)" }}>
               No hay canciones disponibles aún
             </p>
@@ -108,7 +129,13 @@ const HomePage = () => {
         )}
 
         {!isLoading && songs.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: "repeat(auto-fill, minmax(168px, 1fr))",
+              gap: "1.25rem",
+            }}
+          >
             {songs.map((song) => (
               <SongCard key={song.id} song={song} queue={songs} />
             ))}
@@ -116,7 +143,6 @@ const HomePage = () => {
         )}
       </div>
 
-      {/* MODAL SUBIR CANCIÓN */}
       {showUpload && (
         <UploadSongModal
           onClose={() => setShowUpload(false)}

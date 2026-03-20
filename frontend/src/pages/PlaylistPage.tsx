@@ -32,13 +32,11 @@ const PlaylistPage = () => {
   const handleRemoveSong = async (songId: string) => {
     if (!id) return;
     await removeSongFromPlaylist(id, songId);
-    setPlaylist((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        songs: prev.songs.filter((s) => s.songId !== songId),
-      };
-    });
+    setPlaylist((prev) =>
+      prev
+        ? { ...prev, songs: prev.songs.filter((s) => s.songId !== songId) }
+        : null,
+    );
   };
 
   const handlePlayAll = () => {
@@ -49,20 +47,25 @@ const PlaylistPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4 animate-pulse">
+      <div className="flex flex-col" style={{ gap: "1rem" }}>
         <div
-          className="h-8 w-48 rounded-lg"
-          style={{ background: "var(--bg-secondary)" }}
-        />
-        <div
-          className="h-4 w-32 rounded-lg"
-          style={{ background: "var(--bg-secondary)" }}
+          className="animate-pulse"
+          style={{
+            height: "2rem",
+            width: "12rem",
+            background: "var(--bg-secondary)",
+            borderRadius: "0.5rem",
+          }}
         />
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="h-14 rounded-xl"
-            style={{ background: "var(--bg-secondary)" }}
+            className="animate-pulse"
+            style={{
+              height: "60px",
+              background: "var(--bg-secondary)",
+              borderRadius: "0.75rem",
+            }}
           />
         ))}
       </div>
@@ -74,13 +77,18 @@ const PlaylistPage = () => {
   const songs = playlist.songs.map((ps) => ps.song);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col" style={{ gap: "2rem" }}>
+      {/* ========== HEADER ========== */}
+      <div className="flex flex-col" style={{ gap: "1.5rem" }}>
+        {/* Volver */}
         <button
           onClick={() => navigate("/library")}
-          className="flex items-center gap-2 text-sm w-fit transition-colors"
-          style={{ color: "var(--text-secondary)" }}
+          className="flex items-center w-fit transition-colors"
+          style={{
+            color: "var(--text-secondary)",
+            gap: "0.5rem",
+            fontSize: "0.875rem",
+          }}
           onMouseEnter={(e) =>
             (e.currentTarget.style.color = "var(--text-primary)")
           }
@@ -92,11 +100,18 @@ const PlaylistPage = () => {
           Tu biblioteca
         </button>
 
-        <div className="flex items-center gap-6">
-          {/* Cover */}
+        {/* Cover + info */}
+        <div
+          className="flex flex-col sm:flex-row items-start sm:items-end"
+          style={{ gap: "1.5rem" }}
+        >
           <div
-            className="w-32 h-32 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden"
-            style={{ background: "var(--bg-tertiary)" }}
+            className="flex items-center justify-center rounded-2xl shrink-0 overflow-hidden"
+            style={{
+              width: "clamp(96px, 15vw, 140px)",
+              height: "clamp(96px, 15vw, 140px)",
+              background: "var(--bg-tertiary)",
+            }}
           >
             {playlist.coverUrl ? (
               <img
@@ -105,36 +120,45 @@ const PlaylistPage = () => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <Music2 size={40} style={{ color: "var(--accent)" }} />
+              <Music2 size={36} style={{ color: "var(--accent)" }} />
             )}
           </div>
 
-          {/* Info */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col" style={{ gap: "0.5rem" }}>
             <p
-              className="text-xs font-medium uppercase tracking-wider"
+              className="text-xs font-semibold uppercase tracking-wider"
               style={{ color: "var(--text-muted)" }}
             >
               Playlist
             </p>
             <h1
-              className="text-3xl font-bold"
-              style={{ color: "var(--text-primary)" }}
+              className="font-bold"
+              style={{
+                color: "var(--text-primary)",
+                fontSize: "clamp(1.5rem, 5vw, 2.25rem)",
+                lineHeight: 1.15,
+              }}
             >
               {playlist.title}
             </h1>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
               {playlist.songs.length} canción
               {playlist.songs.length !== 1 ? "es" : ""}
             </p>
-
             {playlist.songs.length > 0 && (
               <button
                 onClick={handlePlayAll}
-                className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold w-fit mt-2"
-                style={{ background: "var(--accent)", color: "#080d12", padding: '7px' }}
+                className="flex items-center w-fit rounded-full font-semibold transition-opacity hover:opacity-90"
+                style={{
+                  background: "var(--accent)",
+                  color: "#080d12",
+                  fontSize: "0.875rem",
+                  padding: "0.5rem 1.25rem",
+                  gap: "0.5rem",
+                  marginTop: "0.375rem",
+                }}
               >
-                <Play size={16} />
+                <Play size={15} />
                 Reproducir todo
               </button>
             )}
@@ -142,44 +166,45 @@ const PlaylistPage = () => {
         </div>
       </div>
 
-      {/* Sin canciones */}
+      {/* ========== SIN CANCIONES ========== */}
       {playlist.songs.length === 0 && (
         <div
-          className="flex flex-col items-center gap-3 py-16 rounded-xl"
+          className="flex flex-col items-center justify-center"
           style={{
+            gap: "0.875rem",
+            padding: "4rem 2rem",
             background: "var(--bg-secondary)",
             border: "1px solid var(--border)",
+            borderRadius: "1rem",
           }}
         >
           <Music2 size={36} style={{ color: "var(--text-muted)" }} />
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem" }}>
             Esta playlist no tiene canciones aún
           </p>
         </div>
       )}
 
-      {/* Lista de canciones */}
+      {/* ========== LISTA CANCIONES ========== */}
       {playlist.songs.length > 0 && (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col" style={{ gap: "0.25rem" }}>
           {playlist.songs.map(({ song, songId }, index) => {
             const isCurrentSong = currentSong?.id === song.id;
             return (
               <div
                 key={songId}
-                className="group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors"
+                className="group flex items-center cursor-pointer transition-colors rounded-xl"
                 style={{
+                  gap: "1rem",
+                  padding: "0.75rem 1rem",
                   background: isCurrentSong
                     ? "var(--bg-tertiary)"
                     : "transparent",
                   border: `1px solid ${isCurrentSong ? "var(--accent)" : "transparent"}`,
                 }}
-                onClick={() => {
-                  if (isCurrentSong) {
-                    togglePlay();
-                  } else {
-                    playSong(song, songs);
-                  }
-                }}
+                onClick={() =>
+                  isCurrentSong ? togglePlay() : playSong(song, songs)
+                }
                 onMouseEnter={(e) => {
                   if (!isCurrentSong)
                     e.currentTarget.style.background = "var(--bg-secondary)";
@@ -189,16 +214,23 @@ const PlaylistPage = () => {
                     e.currentTarget.style.background = "transparent";
                 }}
               >
-                {/* Número / icono playing */}
-                <div className="w-6 flex items-center justify-center flex-shrink-0">
+                {/* Número / playing */}
+                <div
+                  className="flex items-center justify-center shrink-0"
+                  style={{ width: "1.5rem" }}
+                >
                   {isCurrentSong && isPlaying ? (
-                    <span style={{ color: "var(--accent)", fontSize: 14 }}>
+                    <span
+                      style={{ color: "var(--accent)", fontSize: "0.875rem" }}
+                    >
                       ♪
                     </span>
                   ) : (
                     <span
-                      className="text-xs"
-                      style={{ color: "var(--text-muted)" }}
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "0.75rem",
+                      }}
                     >
                       {index + 1}
                     </span>
@@ -207,8 +239,12 @@ const PlaylistPage = () => {
 
                 {/* Cover */}
                 <div
-                  className="w-10 h-10 rounded-lg flex-shrink-0 overflow-hidden"
-                  style={{ background: "var(--bg-tertiary)" }}
+                  className="shrink-0 rounded-lg overflow-hidden"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    background: "var(--bg-tertiary)",
+                  }}
                 >
                   {song.coverUrl ? (
                     <img
@@ -224,7 +260,7 @@ const PlaylistPage = () => {
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden min-w-0">
                   <p
                     className="text-sm font-medium truncate"
                     style={{
@@ -237,7 +273,10 @@ const PlaylistPage = () => {
                   </p>
                   <p
                     className="text-xs truncate"
-                    style={{ color: "var(--text-secondary)" }}
+                    style={{
+                      color: "var(--text-secondary)",
+                      marginTop: "0.2rem",
+                    }}
                   >
                     {song.author.name}
                   </p>
@@ -245,15 +284,15 @@ const PlaylistPage = () => {
 
                 {/* Duración */}
                 <span
-                  className="text-xs flex-shrink-0"
-                  style={{ color: "var(--text-muted)" }}
+                  className="hidden sm:block shrink-0 tabular-nums"
+                  style={{ color: "var(--text-muted)", fontSize: "0.8125rem" }}
                 >
                   {formatDuration(song.duration)}
                 </span>
 
                 {/* Eliminar */}
                 <button
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all flex-shrink-0"
+                  className="opacity-0 group-hover:opacity-100 shrink-0 p-1 rounded transition-all"
                   style={{ color: "var(--text-muted)" }}
                   onClick={(e) => {
                     e.stopPropagation();
