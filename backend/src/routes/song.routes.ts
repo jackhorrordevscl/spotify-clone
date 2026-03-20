@@ -15,7 +15,7 @@ const router = Router()
 router.get('/', getAllSongs)
 router.get("/search", searchSongs);
 router.get("/:id", getSongById);
-router.get("/:id/play", incrementPlays);
+router.patch("/:id/play", incrementPlays);
 
 //RUTAS PROTEGIDAS
 router.post(
