@@ -1,0 +1,87 @@
+generator client {
+  provider    = "prisma-client"
+  output      = "../generated/prisma"
+  engineType  = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id  @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  songs       Song[]
+  playlist    Playlist[]
+  likedSongs  LikedSong[]
+}
+
+model Song {
+  id          String @id @default(uuid())
+  title       String
+  duration    Int       //Duración en segundos...
+  audioUrl    String    //URL de Cloudinary...
+  coverUrl    String?   //Imagen de portada...
+  plays       Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+
+  albumId     String?
+  album       Album?    @relation(fields: [albumId], references: [id])
+
+  likedBy     LikedSong[]
+  playlist    PlaylistSong[]
+}
+
+model Album {
+  id          String    @id @default(uuid())
+  title       String
+  coverUrl    String?
+  createdAt   DateTime @default(now()) 
+
+  songs       Song[]
+}
+
+model Playlist {
+  id          String    @id @default(uuid())
+  title       String
+  coverUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+
+  songs       PlaylistSong[]
+}
+
+//Tabla intermediaria para la relación muchos a muchos entre Playlist y Song
+model PlaylistSong {
+  playlistId  String
+  songId      String
+  addedAt     DateTime  @default(now())
+
+  playlist    Playlist  @relation(fields: [playlistId], references: [id])
+  song        Song      @relation(fields: [songId], references: [id])
+
+  @@id([playlistId, songId]) // Clave primaria compuesta
+}
+
+model LikedSong {
+  userId      String
+  songId      String
+  likedAt     DateTime @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+  song        Song      @relation(fields: [songId], references: [id])
+
+  @@id([userId, songId]) // Un usuario no puede dar like dos veces a la misma canción
+}

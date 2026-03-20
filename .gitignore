@@ -1,0 +1,20 @@
+# DEPENDENCIES
+node_modules/
+
+# ENVIRONMENT VARIABLES
+.env
+.env.local
+.env.production
+
+# BUILD OUTPUTS
+dist/
+build/
+
+# LOGS
+
+*.log
+
+# OS
+
+.DS_STORE
+Thumbs.db
