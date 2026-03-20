@@ -1,0 +1,19 @@
+# Dockerfile.dev — backend desarrollo con hot reload
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copiar dependencias
+COPY package*.json ./
+RUN npm ci
+
+# Copiar todo el código (los volúmenes de docker-compose sobreescriben src/ y prisma/)
+COPY . .
+
+# Generar cliente Prisma
+RUN npx prisma generate --config prisma.config.ts
+
+EXPOSE 3001
+
+# Ejecutar migraciones y arrancar con tsx watch (hot reload)
+CMD ["sh", "-c", "npx prisma migrate deploy --config prisma.config.ts && npm run dev"]

@@ -1,0 +1,81 @@
+services:
+  # ============================================================
+  # BASE DE DATOS
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: arctic_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-spotify_clone}
+      POSTGRES_USER: ${POSTGRES_USER:-spotify_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - arctic_dev_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-spotify_user} -d ${POSTGRES_DB:-spotify_clone}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # BACKEND — hot reload con tsx watch
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: arctic_backend_dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-spotify_user}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-spotify_clone}
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_in_prod}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    volumes:
+      - ./backend/src:/app/src        # hot reload del código fuente
+      - ./backend/prisma:/app/prisma  # migraciones en vivo
+      - /app/node_modules             # no sobreescribir node_modules del contenedor
+    networks:
+      - arctic_dev_network
+
+  # ============================================================
+  # FRONTEND — vite dev server con hot reload
+  # ============================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: arctic_frontend_dev
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend/src:/app/src       # hot reload del código fuente
+      - ./frontend/public:/app/public
+      - /app/node_modules             # no sobreescribir node_modules del contenedor
+    networks:
+      - arctic_dev_network
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  arctic_dev_network:
+    driver: bridge
