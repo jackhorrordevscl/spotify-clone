@@ -1,55 +1,85 @@
-import { Router, Request, Response } from 'express'
-import prisma from '../config/prisma'
-import authMiddleware from '../middlewares/auth.middleware'
+import { Router, Request, Response } from "express";
+import prisma from "../config/prisma";
+import authMiddleware from "../middlewares/auth.middleware";
 
-const router = Router()
+const router = Router();
+router.use(authMiddleware);
 
-router.use(authMiddleware)
-
-//GET /api/liked - OBTENER CANCIONES LIKEADAS
-router.get('/', async (req: Request, res: Response) => {
-    const userId = (req as any).userId
+// GET /api/liked
+router.get("/", async (req: Request, res: Response) => {
+  try {
     const liked = await prisma.likedSong.findMany({
-        where: { userId },
-        include: {
-            song: {
-                include: {
-                    author: { select: { id: true, name: true, avatarUrl: true } }
-                }
-            }
+      where: { userId: req.userId },
+      include: {
+        song: {
+          include: {
+            author: { select: { id: true, name: true, avatarUrl: true } },
+          },
         },
-        orderBy: { likedAt: 'desc' }
-    })
-    res.json(liked)
-})
+      },
+      orderBy: { likedAt: "desc" },
+    });
+    res.json(liked);
+  } catch (e) {
+    console.error("Error en GET /liked:", e);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
 
-//POST /api/liked/ - LIKEAR CANCION
-router.post('/', async (req: Request, res: Response) => {
-    const userId = (req as any).userId
-    const { songId } = req.body
+// POST /api/liked
+router.post("/", async (req: Request, res: Response) => {
+  try {
+    const { songId } = req.body;
 
-    const existing = await prisma.likedSong.findUnique({
-        where: { userId_songId: { userId, songId } }
-    })
-
-    if (existing) {
-        res.status(409).json({ message: 'Ya likeaste la canción' })
-        return
+    if (!songId) {
+      res.status(400).json({ message: "songId es requerido" });
+      return;
     }
 
-    await prisma.likedSong.create({ data: { userId, songId } })
-    res.status(201).json({ message: 'Canción likeada' })
-}) 
+    // Verificar que la canción existe
+    const song = await prisma.song.findUnique({ where: { id: songId } });
+    if (!song) {
+      res.status(404).json({ message: "Canción no encontrada" });
+      return;
+    }
 
-//DELETE /api/liked/:songId - QUITAR LIKE
-router.delete('/:songId', async (req: Request, res: Response) => {
-    const userId = (req as any).userId
-    const songId = req.params['songId'] as string
+    const existing = await prisma.likedSong.findUnique({
+      where: { userId_songId: { userId: req.userId, songId } },
+    });
+    if (existing) {
+      res.status(409).json({ message: "Ya likeaste esta canción" });
+      return;
+    }
+
+    await prisma.likedSong.create({ data: { userId: req.userId, songId } });
+    res.status(201).json({ message: "Canción likeada" });
+  } catch (e) {
+    console.error("Error en POST /liked:", e);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// DELETE /api/liked/:songId
+router.delete("/:songId", async (req: Request, res: Response) => {
+  try {
+    const songId = req.params['songId'] as string;
+
+    const existing = await prisma.likedSong.findUnique({
+      where: { userId_songId: { userId: req.userId, songId } },
+    });
+    if (!existing) {
+      res.status(404).json({ message: "Like no encontrado" });
+      return;
+    }
 
     await prisma.likedSong.delete({
-        where: { userId_songId: { userId, songId } }
-    })
-    res.json({ message: 'Like eliminado' })
-})
+      where: { userId_songId: { userId: req.userId, songId } },
+    });
+    res.json({ message: "Like eliminado" });
+  } catch (e) {
+    console.error("Error en DELETE /liked:", e);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
 
-export default router
+export default router;

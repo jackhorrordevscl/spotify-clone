@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   Play,
   Pause,
@@ -9,7 +9,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { usePlayerStore } from "../../store/playerStore";
-import api from "../../services/api";
+import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -25,36 +25,14 @@ const Player = () => {
     currentTime,
     togglePlay,
     setVolume,
-    setCurrentTime,
     playNext,
     playPrev,
   } = usePlayerStore();
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // ✅ Toda la lógica de audio en el hook — el componente solo renderiza
+  const { seek } = useAudioPlayer();
+
   const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    if (!currentSong) return;
-    if (!audioRef.current) audioRef.current = new Audio();
-    audioRef.current.src = currentSong.audioUrl;
-    audioRef.current.volume = volume;
-    if (isPlaying) {
-      audioRef.current.play();
-      api.patch(`/songs/${currentSong.id}/play`).catch(() => {});
-    }
-    audioRef.current.ontimeupdate = () =>
-      setCurrentTime(audioRef.current!.currentTime);
-    audioRef.current.onended = () => playNext();
-  }, [currentSong]);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    isPlaying ? audioRef.current.play() : audioRef.current.pause();
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
-  }, [volume]);
 
   if (!currentSong) {
     return (
@@ -79,7 +57,7 @@ const Player = () => {
   const progressBar = (
     <div className="flex items-center w-full" style={{ gap: "0.625rem" }}>
       <span
-        className="tabular-nums text-right shrink-0"
+        className="tabular-nums text-right flex-shrink-0"
         style={{
           color: "var(--text-muted)",
           fontSize: "0.6875rem",
@@ -94,9 +72,7 @@ const Player = () => {
         onClick={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
           const pct = (e.clientX - rect.left) / rect.width;
-          const newTime = pct * currentSong.duration;
-          if (audioRef.current) audioRef.current.currentTime = newTime;
-          setCurrentTime(newTime);
+          seek(pct * currentSong.duration);
         }}
       >
         <div
@@ -105,7 +81,7 @@ const Player = () => {
         />
       </div>
       <span
-        className="tabular-nums shrink-0"
+        className="tabular-nums flex-shrink-0"
         style={{
           color: "var(--text-muted)",
           fontSize: "0.6875rem",
@@ -124,7 +100,7 @@ const Player = () => {
         borderTop: "1px solid var(--border)",
       }}
     >
-      {/* Barra de progreso expandida en mobile */}
+      {/* Barra de progreso expandible en mobile */}
       {expanded && (
         <div className="md:hidden" style={{ padding: "0.75rem 1.25rem 0" }}>
           {progressBar}
@@ -139,13 +115,13 @@ const Player = () => {
           gap: "clamp(0.75rem, 2vw, 1.5rem)",
         }}
       >
-        {/* ---- Info canción ---- */}
+        {/* Info canción */}
         <div
-          className="flex items-center shrink-0"
+          className="flex items-center flex-shrink-0"
           style={{ gap: "0.875rem", width: "clamp(140px, 25%, 280px)" }}
         >
           <div
-            className="rounded-xl shrink-0 overflow-hidden"
+            className="rounded-xl flex-shrink-0 overflow-hidden"
             style={{
               width: "48px",
               height: "48px",
@@ -180,7 +156,7 @@ const Player = () => {
           </div>
         </div>
 
-        {/* ---- Controles ---- */}
+        {/* Controles centrales */}
         <div
           className="flex-1 flex flex-col items-center min-w-0"
           style={{ gap: "0.5rem" }}
@@ -227,16 +203,15 @@ const Player = () => {
               <SkipForward size={19} />
             </button>
           </div>
-
-          {/* Barra de progreso — desktop */}
+          {/* Barra de progreso — solo desktop */}
           <div className="hidden md:flex w-full" style={{ maxWidth: "520px" }}>
             {progressBar}
           </div>
         </div>
 
-        {/* ---- Volumen / expand ---- */}
+        {/* Volumen (desktop) + botón expand (mobile) */}
         <div
-          className="flex items-center shrink-0"
+          className="flex items-center flex-shrink-0"
           style={{ gap: "0.75rem" }}
         >
           <div
