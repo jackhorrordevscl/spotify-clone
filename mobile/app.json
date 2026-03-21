@@ -1,25 +1,49 @@
 {
   "expo": {
     "name": "Arctic",
-    "slug": "arctic",
+    "slug": "arctic-music",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#080d12"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.arctic.music"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080d12"
       },
-      "package": "com.arctic.musicapp"
+      "package": "com.arctic.music",
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "apiUrl": "http://192.168.1.183:3001/api"
-    }
+      "apiUrl": "https://arctic-production-443b.up.railway.app/api",
+      "eas": {
+        "projectId": "a98e3ca8-3e9f-42de-9a67-ed84f10e8152"
+      }
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }

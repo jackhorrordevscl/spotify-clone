@@ -1,8 +1,4 @@
 // mobile/src/screens/LibraryScreen.tsx
-// Equivalente a frontend/src/pages/LibraryPage.tsx
-// Muestra las playlists del usuario con opciones de crear y eliminar
-// Navega a PlaylistScreen al tocar una playlist
-
 import { useState } from "react";
 import {
   View,
@@ -16,7 +12,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -41,14 +36,8 @@ const colors = {
 
 export default function LibraryScreen() {
   const navigation = useNavigation<LibraryNavProp>();
-  const insets = useSafeAreaInsets();
-  const {
-    playlists,
-    isLoading,
-    fetchPlaylists,
-    createPlaylist,
-    deletePlaylist,
-  } = usePlaylistStore();
+  const { playlists, isLoading, createPlaylist, deletePlaylist } =
+    usePlaylistStore();
 
   const [showInput, setShowInput] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -67,7 +56,6 @@ export default function LibraryScreen() {
   };
 
   const handleDelete = (playlist: Playlist) => {
-    // Alert.alert con dos botones — equivalente al click del ícono trash en web
     Alert.alert("Eliminar playlist", `¿Eliminar "${playlist.title}"?`, [
       { text: "Cancelar", style: "cancel" },
       {
@@ -82,14 +70,10 @@ export default function LibraryScreen() {
     <TouchableOpacity
       style={styles.playlistRow}
       onPress={() =>
-        navigation.navigate("Playlist", {
-          id: item.id,
-          title: item.title,
-        })
+        navigation.navigate("Playlist", { id: item.id, title: item.title })
       }
       activeOpacity={0.75}
     >
-      {/* Cover */}
       <View style={styles.playlistCover}>
         {item.coverUrl ? (
           <Image
@@ -102,7 +86,6 @@ export default function LibraryScreen() {
         )}
       </View>
 
-      {/* Info */}
       <View style={styles.playlistInfo}>
         <Text style={styles.playlistTitle} numberOfLines={1}>
           {item.title}
@@ -112,7 +95,6 @@ export default function LibraryScreen() {
         </Text>
       </View>
 
-      {/* Botón eliminar */}
       <TouchableOpacity
         onPress={() => handleDelete(item)}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -123,20 +105,16 @@ export default function LibraryScreen() {
   );
 
   return (
+    // CORRECCIÓN: sin paddingTop manual — el header nativo del Tab Navigator lo maneja
     <View style={styles.container}>
       <FlatList
         data={playlists}
         renderItem={renderPlaylist}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingTop: insets.top + 16 },
-        ]}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        // Header con título, botón Nueva playlist e input condicional
         ListHeaderComponent={() => (
           <View style={styles.header}>
-            {/* Fila: título + botón */}
             <View style={styles.headerRow}>
               <View>
                 <Text style={styles.title}>Tu biblioteca</Text>
@@ -154,7 +132,6 @@ export default function LibraryScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Input de nueva playlist — visible al pulsar "Nueva" */}
             {showInput && (
               <View style={styles.inputRow}>
                 <TextInput
@@ -164,7 +141,6 @@ export default function LibraryScreen() {
                   value={newTitle}
                   onChangeText={setNewTitle}
                   autoFocus
-                  // Crear al pulsar "Listo" en el teclado
                   onSubmitEditing={handleCreate}
                   returnKeyType="done"
                 />
@@ -195,7 +171,6 @@ export default function LibraryScreen() {
             )}
           </View>
         )}
-        // Estado vacío
         ListEmptyComponent={() =>
           !isLoading ? (
             <View style={styles.emptyState}>
@@ -220,8 +195,8 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bgPrimary },
-  listContent: { paddingHorizontal: 16, paddingBottom: 100, gap: 8 },
-  header: { gap: 16, marginBottom: 8 },
+  listContent: { padding: 16, paddingBottom: 16, gap: 8 },
+  header: { gap: 14, marginBottom: 4 },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",

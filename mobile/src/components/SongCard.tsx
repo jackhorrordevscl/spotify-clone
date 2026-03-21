@@ -1,25 +1,28 @@
 // mobile/src/components/SongCard.tsx
-// Componente reutilizable usado en Home, Search y PlaylistScreen
-// Tiene dos variantes de layout:
-//   grid   → card cuadrada con cover grande (HomeScreen, SearchScreen)
-//   list   → fila horizontal (PlaylistScreen)
-
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions, // ← Se actualiza en rotación. Dimensions.get() NO lo hace
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../store/playerStore";
 import { useLikedStore } from "../store/likedStore";
 import type { Song } from "../types";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-// Ancho de card en modo grid: 2 columnas con 16px padding y 12px gap
-export const CARD_WIDTH = (SCREEN_WIDTH - 32 - 12) / 2;
+// CORRECCIÓN: exportamos una función en vez de una constante fija
+// Así cada componente calcula el ancho según el tamaño actual de pantalla
+export function useCardWidth() {
+  const { width } = useWindowDimensions();
+  // 16px padding izquierdo + 16px padding derecho + 12px gap entre columnas
+  return (width - 32 - 12) / 2;
+}
+
+// Compatibilidad hacia atrás con SearchScreen que importa CARD_WIDTH
+// TODO: actualizar SearchScreen para usar useCardWidth()
+export const CARD_WIDTH = 0;
 
 const colors = {
   bgSecondary: "#0d1520",
@@ -40,10 +43,7 @@ const formatDuration = (seconds: number) => {
 interface Props {
   song: Song;
   queue: Song[];
-  // variant controla el layout
-  // 'grid' = card cuadrada (Home/Search), 'list' = fila (Playlist)
   variant?: "grid" | "list";
-  // Índice visible en modo list (número de orden en la playlist)
   index?: number;
 }
 
@@ -53,6 +53,10 @@ export default function SongCard({
   variant = "grid",
   index,
 }: Props) {
+  // useWindowDimensions se llama aquí para que el componente se re-renderice
+  // cuando el usuario rota la pantalla
+  const cardWidth = useCardWidth();
+
   const { playSong, currentSong, isPlaying, togglePlay } = usePlayerStore();
   const { isLiked, likeSong, unlikeSong } = useLikedStore();
 
@@ -60,19 +64,15 @@ export default function SongCard({
   const liked = isLiked(song.id);
 
   const handlePress = () => {
-    if (isCurrentSong) {
-      togglePlay();
-    } else {
-      // Pasa toda la queue para que playNext/playPrev funcionen
-      playSong(song, queue);
-    }
+    if (isCurrentSong) togglePlay();
+    else playSong(song, queue);
   };
 
   const handleLike = () => {
     liked ? unlikeSong(song.id) : likeSong(song.id);
   };
 
-  // ─── VARIANTE LIST (PlaylistScreen) ──────────────────
+  // ─── VARIANTE LIST ────────────────────────────────────
   if (variant === "list") {
     return (
       <TouchableOpacity
@@ -80,7 +80,6 @@ export default function SongCard({
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        {/* Número de orden o ícono de reproduciendo */}
         <View style={styles.listIndex}>
           {isCurrentSong && isPlaying ? (
             <Ionicons name="musical-note" size={14} color={colors.accent} />
@@ -89,7 +88,6 @@ export default function SongCard({
           )}
         </View>
 
-        {/* Cover pequeño */}
         <View style={styles.listCover}>
           {song.coverUrl ? (
             <Image
@@ -102,7 +100,6 @@ export default function SongCard({
           )}
         </View>
 
-        {/* Info */}
         <View style={styles.listInfo}>
           <Text
             style={[styles.listTitle, isCurrentSong && styles.activeText]}
@@ -115,10 +112,8 @@ export default function SongCard({
           </Text>
         </View>
 
-        {/* Duración */}
         <Text style={styles.listDuration}>{formatDuration(song.duration)}</Text>
 
-        {/* Botón like */}
         <TouchableOpacity
           onPress={handleLike}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -133,14 +128,18 @@ export default function SongCard({
     );
   }
 
-  // ─── VARIANTE GRID (Home / Search) ───────────────────
+  // ─── VARIANTE GRID ────────────────────────────────────
   return (
     <TouchableOpacity
-      style={[styles.gridCard, isCurrentSong && styles.gridCardActive]}
+      // CORRECCIÓN: width viene de useWindowDimensions, no de Dimensions.get()
+      style={[
+        styles.gridCard,
+        { width: cardWidth },
+        isCurrentSong && styles.gridCardActive,
+      ]}
       onPress={handlePress}
       activeOpacity={0.75}
     >
-      {/* Cover */}
       <View style={styles.gridCover}>
         {song.coverUrl ? (
           <Image
@@ -150,11 +149,10 @@ export default function SongCard({
           />
         ) : (
           <View style={styles.gridCoverPlaceholder}>
-            <Text style={{ fontSize: 28 }}>♪</Text>
+            <Text style={{ fontSize: 28, color: colors.accent }}>♪</Text>
           </View>
         )}
 
-        {/* Overlay con play/pause — siempre visible en mobile */}
         <View style={styles.gridOverlay}>
           <View style={styles.gridPlayBtn}>
             <Ionicons
@@ -167,7 +165,6 @@ export default function SongCard({
         </View>
       </View>
 
-      {/* Info */}
       <View style={styles.gridInfo}>
         <View style={styles.gridTitleRow}>
           <Text
@@ -187,7 +184,6 @@ export default function SongCard({
             />
           </TouchableOpacity>
         </View>
-
         <Text style={styles.gridAuthor} numberOfLines={1}>
           {song.author.name}
         </Text>
@@ -200,7 +196,6 @@ export default function SongCard({
 const styles = StyleSheet.create({
   // ── GRID ──
   gridCard: {
-    width: CARD_WIDTH,
     backgroundColor: colors.bgSecondary,
     borderRadius: 14,
     borderWidth: 1,
@@ -259,6 +254,7 @@ const styles = StyleSheet.create({
 
   // ── LIST ──
   listRow: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
@@ -271,14 +267,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accent,
   },
-  listIndex: {
-    width: 20,
-    alignItems: "center",
-  },
-  listIndexText: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
+  listIndex: { width: 20, alignItems: "center" },
+  listIndexText: { fontSize: 12, color: colors.textMuted },
   listCover: {
     width: 40,
     height: 40,
@@ -288,16 +278,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  listInfo: {
-    flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  listTitle: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: colors.textPrimary,
-  },
+  listInfo: { flex: 1, gap: 2, minWidth: 0 },
+  listTitle: { fontSize: 13, fontWeight: "500", color: colors.textPrimary },
   listAuthor: { fontSize: 11, color: colors.textSecondary },
   listDuration: { fontSize: 11, color: colors.textMuted, flexShrink: 0 },
   activeText: { color: colors.accent },

@@ -1,16 +1,12 @@
 // mobile/src/components/MiniPlayer.tsx
-// Player compacto que aparece en la parte inferior de Home, Search y Library
-// Al tocar abre el player completo (aquí simplemente expande la barra de progreso)
-// Usa el hook useAudioPlayer para toda la lógica de audio
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   StyleSheet,
-  Animated,
+  LayoutChangeEvent,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -43,64 +39,68 @@ export default function MiniPlayer() {
     playNext,
     playPrev,
   } = usePlayerStore();
-
-  // Toda la lógica de audio vive en el hook
   const { seek } = useAudioPlayer();
-
-  // Controla si la barra de progreso está expandida
-  const [expanded, setExpanded] = useState(false);
-
-  // Safe area para no tapar el home indicator en iPhone
   const insets = useSafeAreaInsets();
 
-  // Si no hay canción activa, no renderizar nada
+  const [expanded, setExpanded] = useState(false);
+  // Ancho real del track medido con onLayout — necesario para calcular el seek
+  const trackWidthRef = useRef(1);
+
   if (!currentSong) return null;
 
   const progress =
-    currentSong.duration > 0 ? currentTime / currentSong.duration : 0;
+    currentSong.duration > 0
+      ? Math.min(currentTime / currentSong.duration, 1)
+      : 0;
 
-  // ─── BARRA DE PROGRESO ─────────────────────────────
-  const ProgressBar = () => (
-    <View style={styles.progressContainer}>
-      <Text style={styles.progressTime}>{formatTime(currentTime)}</Text>
+  const handleTrackLayout = (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (w > 0) trackWidthRef.current = w;
+  };
 
-      {/* Track tocable para hacer seek */}
-      <TouchableOpacity
-        style={styles.progressTrack}
-        activeOpacity={1}
-        onPress={(e) => {
-          // Calcular la posición relativa del toque en el track
-          // layout.width lo obtenemos con onLayout
-          const { locationX } = e.nativeEvent;
-          // Usamos una ref para el ancho real del track
-          // Por simplicidad aquí hacemos un cálculo aproximado
-        }}
-      >
-        <View style={styles.progressBg}>
-          <View style={[styles.progressFill, { flex: progress }]} />
-          <View style={{ flex: 1 - progress }} />
-        </View>
-      </TouchableOpacity>
-
-      <Text style={styles.progressTime}>
-        {formatTime(currentSong.duration)}
-      </Text>
-    </View>
-  );
+  const handleSeek = (e: any) => {
+    // locationX es la coordenada X del toque dentro del componente
+    const { locationX } = e.nativeEvent;
+    const pct = Math.max(0, Math.min(1, locationX / trackWidthRef.current));
+    seek(pct * currentSong.duration);
+  };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom || 12 }]}>
-      {/* Barra de progreso expandible */}
-      {expanded && <ProgressBar />}
+    // paddingBottom evita que el home indicator tape el contenido (iPhone)
+    // Math.max asegura al menos 8px incluso en Android
+    <View
+      style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}
+    >
+      {/* ── BARRA DE PROGRESO EXPANDIDA ── */}
+      {expanded && (
+        <View style={styles.progressExpanded}>
+          <Text style={styles.progressTime}>{formatTime(currentTime)}</Text>
 
-      {/* Línea de progreso fina siempre visible en la parte superior */}
-      <View style={styles.progressLine}>
-        <View
-          style={[styles.progressLineFill, { width: `${progress * 100}%` }]}
-        />
+          {/* Zona tocable del track — mide su propio ancho con onLayout */}
+          <TouchableOpacity
+            style={styles.trackTouchable}
+            activeOpacity={1}
+            onPress={handleSeek}
+            onLayout={handleTrackLayout}
+          >
+            <View style={styles.trackBg}>
+              {/* CORRECCIÓN: usar width en % en lugar de flex para la barra */}
+              <View style={{ width: `${progress}%` as `${number}%` }} />
+            </View>
+          </TouchableOpacity>
+
+          <Text style={styles.progressTime}>
+            {formatTime(currentSong.duration)}
+          </Text>
+        </View>
+      )}
+
+      {/* ── LÍNEA DELGADA SIEMPRE VISIBLE ── */}
+      <View style={styles.thinLine}>
+        <View style={{ width: `${progress}%` as `${number}%` }} />
       </View>
 
-      {/* Fila principal del mini player */}
+      {/* ── FILA PRINCIPAL ── */}
       <View style={styles.row}>
         {/* Cover */}
         <View style={styles.cover}>
@@ -115,10 +115,10 @@ export default function MiniPlayer() {
           )}
         </View>
 
-        {/* Info de la canción — toca para expandir la barra de progreso */}
+        {/* Info — toca para expandir la barra de progreso */}
         <TouchableOpacity
           style={styles.info}
-          onPress={() => setExpanded(!expanded)}
+          onPress={() => setExpanded((v) => !v)}
           activeOpacity={0.8}
         >
           <Text style={styles.title} numberOfLines={1}>
@@ -131,10 +131,9 @@ export default function MiniPlayer() {
 
         {/* Controles */}
         <View style={styles.controls}>
-          {/* Anterior */}
           <TouchableOpacity
             onPress={playPrev}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons
               name="play-skip-back"
@@ -143,7 +142,6 @@ export default function MiniPlayer() {
             />
           </TouchableOpacity>
 
-          {/* Play / Pause — botón principal */}
           <TouchableOpacity style={styles.playBtn} onPress={togglePlay}>
             <Ionicons
               name={isPlaying ? "pause" : "play"}
@@ -153,10 +151,9 @@ export default function MiniPlayer() {
             />
           </TouchableOpacity>
 
-          {/* Siguiente */}
           <TouchableOpacity
             onPress={playNext}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons
               name="play-skip-forward"
@@ -175,32 +172,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSecondary,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    // Sin posición absolute — cada screen lo incluye en su layout
-    // así no tapa el bottom tab navigator
   },
 
-  // Línea fina de progreso siempre visible
-  progressLine: {
+  // Línea fina de progreso
+  thinLine: {
     height: 2,
     backgroundColor: colors.bgTertiary,
   },
-  progressLineFill: {
+  thinLineFill: {
     height: 2,
     backgroundColor: colors.accent,
   },
 
+  // Fila principal
   row: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 10,
+    paddingBottom: 6,
     gap: 12,
   },
 
   cover: {
-    width: 46,
-    height: 46,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 8,
     overflow: "hidden",
     backgroundColor: colors.bgTertiary,
     justifyContent: "center",
@@ -211,7 +208,7 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
     gap: 2,
-    minWidth: 0,
+    minWidth: 0, // Necesario para que numberOfLines funcione correctamente
   },
 
   title: {
@@ -228,7 +225,7 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 12,
     flexShrink: 0,
   },
 
@@ -242,7 +239,7 @@ const styles = StyleSheet.create({
   },
 
   // Barra de progreso expandida
-  progressContainer: {
+  progressExpanded: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -253,21 +250,25 @@ const styles = StyleSheet.create({
   progressTime: {
     fontSize: 10,
     color: colors.textMuted,
-    width: 32,
+    width: 34,
     textAlign: "center",
   },
 
-  progressTrack: { flex: 1, paddingVertical: 8 },
+  // Zona tocable — paddingVertical amplía el área de toque sin cambiar el visual
+  trackTouchable: {
+    flex: 1,
+    paddingVertical: 10,
+  },
 
-  progressBg: {
-    height: 3,
+  trackBg: {
+    height: 4,
     borderRadius: 2,
     backgroundColor: colors.bgTertiary,
-    flexDirection: "row",
     overflow: "hidden",
   },
 
-  progressFill: {
+  trackFill: {
+    height: 4,
     backgroundColor: colors.accent,
     borderRadius: 2,
   },

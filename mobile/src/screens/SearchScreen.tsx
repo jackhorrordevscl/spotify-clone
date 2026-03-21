@@ -1,10 +1,4 @@
 // mobile/src/screens/SearchScreen.tsx
-// Equivalente a frontend/src/pages/SearchPage.tsx
-// Diferencias clave:
-//   - TextInput con SearchBar integrado
-//   - FlatList en lugar de grid CSS
-//   - Debounce implementado con useRef + setTimeout (sin librería)
-
 import { useState, useRef, useCallback } from "react";
 import {
   View,
@@ -14,12 +8,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import api from "../api/api";
-import SongCard, { CARD_WIDTH } from "../components/SongCard";
+import SongCard from "../components/SongCard"; // CORRECCIÓN: sin importar CARD_WIDTH
 import MiniPlayer from "../components/MiniPlayer";
 import type { Song } from "../types";
 
@@ -35,29 +29,24 @@ const colors = {
 };
 
 export default function SearchScreen() {
-  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // useRef para el timer del debounce — no necesita re-render
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = useCallback((text: string) => {
     setQuery(text);
 
-    // Limpiar resultados si el input está vacío
     if (!text.trim()) {
       setResults([]);
       return;
     }
 
-    // Cancelar el timer anterior antes de crear uno nuevo
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    // Esperar 400ms después de que el usuario deje de escribir
-    // Mismo debounce que el frontend (useSearch.ts)
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
@@ -86,21 +75,14 @@ export default function SearchScreen() {
   return (
     <View style={styles.container}>
       {/* ── SEARCH BAR ── */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <View style={styles.header}>
         <Text style={styles.title}>Buscar</Text>
         <Text style={styles.subtitle}>
           Encuentra canciones por título o artista
         </Text>
 
-        {/* Input con ícono de lupa y botón de limpiar */}
         <View style={styles.searchBar}>
-          <Ionicons
-            name="search"
-            size={16}
-            color={colors.textMuted}
-            style={styles.searchIcon}
-          />
-
+          <Ionicons name="search" size={16} color={colors.textMuted} />
           <TextInput
             style={styles.searchInput}
             placeholder="¿Qué quieres escuchar?"
@@ -111,8 +93,6 @@ export default function SearchScreen() {
             autoCapitalize="none"
             returnKeyType="search"
           />
-
-          {/* Botón X para limpiar — solo visible si hay texto */}
           {query.length > 0 && (
             <TouchableOpacity
               onPress={clearSearch}
@@ -129,8 +109,6 @@ export default function SearchScreen() {
       </View>
 
       {/* ── ESTADOS ── */}
-
-      {/* Sin query — estado inicial */}
       {!query && (
         <View style={styles.emptyState}>
           <Ionicons name="search" size={40} color={colors.textMuted} />
@@ -138,30 +116,29 @@ export default function SearchScreen() {
         </View>
       )}
 
-      {/* Cargando */}
       {query && isLoading && (
         <View style={styles.emptyState}>
           <ActivityIndicator color={colors.accent} size="large" />
         </View>
       )}
 
-      {/* Sin resultados */}
       {query && !isLoading && results.length === 0 && (
         <View style={styles.emptyState}>
-          <Text style={{ fontSize: 36 }}>♪</Text>
+          <Text style={{ fontSize: 36, color: colors.textMuted }}>♪</Text>
           <Text style={styles.emptyText}>
             No se encontraron canciones para "{query}"
           </Text>
         </View>
       )}
 
-      {/* Resultados */}
       {query && !isLoading && results.length > 0 && (
         <FlatList
           data={results}
           renderItem={renderSong}
           keyExtractor={(item) => item.id}
           numColumns={2}
+          // CORRECCIÓN: key fuerza recrear el FlatList al rotar
+          key={width}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -174,31 +151,21 @@ export default function SearchScreen() {
         />
       )}
 
-      {/* MiniPlayer fijo en la parte inferior */}
       <MiniPlayer />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgPrimary,
-  },
+  container: { flex: 1, backgroundColor: colors.bgPrimary },
   header: {
     paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 8,
+    paddingTop: 16,
+    paddingBottom: 12,
+    gap: 6,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
+  title: { fontSize: 22, fontWeight: "700", color: colors.textPrimary },
+  subtitle: { fontSize: 13, color: colors.textSecondary },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -208,10 +175,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 2,
-    marginTop: 4,
+    marginTop: 6,
     gap: 8,
   },
-  searchIcon: { flexShrink: 0 },
   searchInput: {
     flex: 1,
     fontSize: 14,
@@ -239,7 +205,7 @@ const styles = StyleSheet.create({
   columnWrapper: { gap: 12 },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 16,
     gap: 12,
   },
 });

@@ -1,22 +1,23 @@
 // mobile/src/navigation/AppNavigator.tsx
-// Define toda la estructura de navegación de la app
-// Equivale a las <Routes> de React Router en el frontend
-//
-// Estructura:
-//   AuthStack  → Login, Register  (si no hay token)
-//   MainStack  → Tab Navigator con Home, Search, Library
-//                + PlaylistScreen encima del tab (modal-style)
-
-import { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  StyleSheet,
+} from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthStore } from "../store/authStore";
+import { usePlaylistStore } from "../store/playlistStore";
 
-// Screens
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -24,19 +25,16 @@ import SearchScreen from "../screens/SearchScreen";
 import LibraryScreen from "../screens/LibraryScreen";
 import PlaylistScreen from "../screens/PlaylistScreen";
 
-// Paleta Arctic
 const colors = {
   bgPrimary: "#080d12",
   bgSecondary: "#0d1520",
+  bgTertiary: "#162030",
   accent: "#00b4d8",
+  textPrimary: "#f0f9ff",
+  textSecondary: "#7eb8cc",
   textMuted: "#3d6478",
   border: "#1e3448",
 };
-
-// ─── TIPOS DE RUTAS ──────────────────────────────────────
-// Permite que TypeScript valide los parámetros de navegación
-// undefined = la ruta no recibe params
-// { id: string } = la ruta requiere ese param
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -54,44 +52,212 @@ export type TabParamList = {
   Library: undefined;
 };
 
-// ─── NAVIGATORS ──────────────────────────────────────────
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainStack = createNativeStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-// ─── TAB NAVIGATOR ───────────────────────────────────────
-// Las 3 tabs principales: Home, Search, Library
+// ─── BOTÓN DE USUARIO EN EL HEADER ───────────────────────
+// Se renderiza como headerRight en todas las tabs
+function UserMenuButton() {
+  const { user, logout } = useAuthStore();
+  const [visible, setVisible] = useState(false);
+  const insets = useSafeAreaInsets();
+
+  const handleLogout = () => {
+    Alert.alert("Cerrar sesión", `¿Deseas salir de tu cuenta, ${user?.name}?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Salir",
+        style: "destructive",
+        onPress: async () => {
+          setVisible(false);
+          await logout();
+        },
+      },
+    ]);
+  };
+
+  return (
+    <>
+      {/* Avatar circular — el botón hamburguesa */}
+      <TouchableOpacity
+        style={menuStyles.trigger}
+        onPress={() => setVisible(true)}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <View style={menuStyles.avatar}>
+          <Text style={menuStyles.avatarLetter}>
+            {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Modal del menú de usuario */}
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
+        {/* Tocar fuera cierra el menú */}
+        <TouchableOpacity
+          style={menuStyles.backdrop}
+          activeOpacity={1}
+          onPress={() => setVisible(false)}
+        >
+          {/* Posicionado debajo del header */}
+          <View style={[menuStyles.menu, { top: insets.top + 56, right: 12 }]}>
+            {/* Info del usuario */}
+            <View style={menuStyles.userRow}>
+              <View style={menuStyles.menuAvatar}>
+                <Text style={menuStyles.menuAvatarLetter}>
+                  {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={menuStyles.userName} numberOfLines={1}>
+                  {user?.name}
+                </Text>
+                <Text style={menuStyles.userEmail} numberOfLines={1}>
+                  {user?.email}
+                </Text>
+              </View>
+            </View>
+
+            <View style={menuStyles.divider} />
+
+            {/* Cerrar sesión */}
+            <TouchableOpacity
+              style={menuStyles.menuItem}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out-outline" size={18} color="#f87171" />
+              <Text style={menuStyles.menuItemDanger}>Cerrar sesión</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+}
+
+const menuStyles = StyleSheet.create({
+  trigger: {
+    marginRight: 6,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.bgTertiary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarLetter: {
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  menu: {
+    position: "absolute",
+    width: 230,
+    backgroundColor: colors.bgSecondary,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
+  },
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+  },
+  menuAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.bgTertiary,
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0,
+  },
+  menuAvatarLetter: {
+    color: colors.accent,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  userName: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  userEmail: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 14,
+  },
+  menuItemDanger: {
+    color: "#f87171",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+});
+
+// ─── TAB NAVIGATOR ────────────────────────────────────────
 function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        // Sin header nativo — cada screen maneja su propio título
-        headerShown: false,
+        // CORRECCIÓN: headerShown: true para mostrar el header con el botón de usuario
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: colors.bgSecondary,
+        },
+        // Título "Arctic" en el header de todas las tabs
+        headerTitle: "Arctic",
+        headerTitleStyle: {
+          color: colors.accent,
+          fontSize: 20,
+          fontWeight: "700",
+        },
+        // CORRECCIÓN: botón de menú de usuario a la derecha del header
+        headerRight: () => <UserMenuButton />,
+        headerShadowVisible: false,
 
-        // Estilo de la barra de tabs (paleta Arctic)
         tabBarStyle: {
           backgroundColor: colors.bgSecondary,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          // Altura extra para el home indicator de iPhone
           paddingBottom: 8,
           paddingTop: 8,
           height: 64,
         },
-
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
-
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: "500",
           marginTop: 2,
         },
-
-        // Ícono de cada tab según la ruta activa/inactiva
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
-
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Search") {
@@ -99,7 +265,6 @@ function TabNavigator() {
           } else {
             iconName = focused ? "library" : "library-outline";
           }
-
           return <Ionicons name={iconName} size={22} color={color} />;
         },
       })}
@@ -123,8 +288,6 @@ function TabNavigator() {
   );
 }
 
-// ─── AUTH STACK ──────────────────────────────────────────
-// Login y Register — sin header, sin gestos de retroceso en Login
 function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -134,39 +297,33 @@ function AuthNavigator() {
   );
 }
 
-// ─── MAIN STACK ──────────────────────────────────────────
-// Tabs + PlaylistScreen encima (push desde Library)
 function MainNavigator() {
+  const { fetchPlaylists } = usePlaylistStore();
+
+  // Cargar playlists al entrar a la app autenticada
+  useEffect(() => {
+    fetchPlaylists();
+  }, []);
+
   return (
     <MainStack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Tabs es la pantalla raíz del stack principal */}
       <MainStack.Screen name="Tabs" component={TabNavigator} />
-
-      {/* PlaylistScreen se abre encima de las tabs con animación de push */}
       <MainStack.Screen
         name="Playlist"
         component={PlaylistScreen}
-        options={{
-          // Animación de slide desde la derecha (nativa en iOS/Android)
-          animation: "slide_from_right",
-        }}
+        options={{ animation: "slide_from_right" }}
       />
     </MainStack.Navigator>
   );
 }
 
-// ─── ROOT NAVIGATOR ──────────────────────────────────────
-// Decide si mostrar Auth o Main según el estado del token
 export default function AppNavigator() {
   const { token, loadUser, isLoading } = useAuthStore();
 
-  // Al montar la app, intentar restaurar la sesión guardada
   useEffect(() => {
     loadUser();
   }, []);
 
-  // Mientras loadUser verifica el token, mostrar un spinner
-  // Evita el flash de la pantalla de Login antes de redirigir a Main
   if (isLoading) {
     return (
       <View
@@ -183,7 +340,6 @@ export default function AppNavigator() {
   }
 
   return (
-    // NavigationContainer es el contexto raíz — debe envolver todo
     <NavigationContainer>
       {token ? <MainNavigator /> : <AuthNavigator />}
     </NavigationContainer>
