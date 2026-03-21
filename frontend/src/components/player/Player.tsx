@@ -57,7 +57,7 @@ const Player = () => {
   const progressBar = (
     <div className="flex items-center w-full" style={{ gap: "0.625rem" }}>
       <span
-        className="tabular-nums text-right flex-shrink-0"
+        className="tabular-nums text-right shrink-0"
         style={{
           color: "var(--text-muted)",
           fontSize: "0.6875rem",
@@ -81,7 +81,7 @@ const Player = () => {
         />
       </div>
       <span
-        className="tabular-nums flex-shrink-0"
+        className="tabular-nums shrink-0"
         style={{
           color: "var(--text-muted)",
           fontSize: "0.6875rem",
@@ -117,11 +117,11 @@ const Player = () => {
       >
         {/* Info canción */}
         <div
-          className="flex items-center flex-shrink-0"
+          className="flex items-center shrink-0"
           style={{ gap: "0.875rem", width: "clamp(140px, 25%, 280px)" }}
         >
           <div
-            className="rounded-xl flex-shrink-0 overflow-hidden"
+            className="rounded-xl shrink-0 overflow-hidden"
             style={{
               width: "48px",
               height: "48px",
@@ -211,7 +211,7 @@ const Player = () => {
 
         {/* Volumen (desktop) + botón expand (mobile) */}
         <div
-          className="flex items-center flex-shrink-0"
+          className="flex items-center shrink-0"
           style={{ gap: "0.75rem" }}
         >
           <div
