@@ -1,6 +1,6 @@
 // mobile/src/hooks/useAudioPlayer.ts
 import { useEffect, useRef } from "react";
-import { Audio } from "expo-av";
+import { Audio, AVPlaybackStatus } from "expo-av";
 import { usePlayerStore } from "../store/playerStore";
 import api from "../api/api";
 
@@ -32,13 +32,13 @@ export const useAudioPlayer = () => {
 
       const { sound } = await Audio.Sound.createAsync(
         { uri: currentSong.audioUrl },
-        { shouldPlay: isPlaying, volume },
+        { shouldPlay: false, volume },
       );
 
       soundRef.current = sound;
 
       // Actualizar el tiempo actual y detectar cuando termina la canción
-      sound.setOnPlaybackStatusUpdate((status) => {
+      sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
         if (!status.isLoaded) return;
         setCurrentTime(status.positionMillis / 1000);
         if (status.didJustFinish) playNext();

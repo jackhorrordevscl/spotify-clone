@@ -27,7 +27,10 @@
       "permissions": [
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.MODIFY_AUDIO_SETTINGS"
-      ]
+      ],
+      "statusBarColor": "#080d12",
+      "statusBarStyle": "dark",
+      "navigationBarColor": "#080d12"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,6 +46,13 @@
         "expo-av",
         {
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "visibility": "leans-back",
+          "backgroundColor": "#080d12"
         }
       ]
     ],

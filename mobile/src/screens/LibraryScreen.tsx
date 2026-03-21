@@ -11,6 +11,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -106,7 +107,7 @@ export default function LibraryScreen() {
 
   return (
     // CORRECCIÓN: sin paddingTop manual — el header nativo del Tab Navigator lo maneja
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <FlatList
         data={playlists}
         renderItem={renderPlaylist}
@@ -189,7 +190,7 @@ export default function LibraryScreen() {
       />
 
       <MiniPlayer />
-    </View>
+    </SafeAreaView>
   );
 }
 

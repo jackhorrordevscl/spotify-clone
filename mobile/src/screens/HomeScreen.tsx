@@ -9,6 +9,7 @@ import {
   RefreshControl,
   useWindowDimensions, // Responsive al rotar
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../store/authStore";
 import { useLikedStore } from "../store/likedStore";
@@ -99,7 +100,7 @@ export default function HomeScreen() {
   // container: flex:1 → ocupa todo el espacio disponible entre header y tab bar
   // MiniPlayer va FUERA del FlatList, después de él, así siempre es visible
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       {isLoading ? (
         <>
           <View style={styles.header}>
@@ -148,7 +149,7 @@ export default function HomeScreen() {
 
       {/* MiniPlayer SIEMPRE al fondo, fuera del scroll */}
       <MiniPlayer />
-    </View>
+    </SafeAreaView>
   );
 }
 

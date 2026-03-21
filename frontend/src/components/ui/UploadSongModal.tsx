@@ -99,7 +99,7 @@ const UploadSongModal = ({ onClose, onUploaded }: Props) => {
 
         <div className="flex items-center gap-4">
           <div
-            className="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer flex-shrink-0"
+            className="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer shrink-0"
             style={{
               background: "var(--bg-tertiary)",
               border: "1px solid var(--border)",

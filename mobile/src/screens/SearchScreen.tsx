@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import api from "../api/api";
@@ -73,7 +74,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       {/* ── SEARCH BAR ── */}
       <View style={styles.header}>
         <Text style={styles.title}>Buscar</Text>
@@ -152,7 +153,7 @@ export default function SearchScreen() {
       )}
 
       <MiniPlayer />
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -9,7 +9,7 @@ import {
   StyleSheet, Image, ActivityIndicator,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RouteProp } from '@react-navigation/native'
@@ -39,7 +39,6 @@ const colors = {
 export default function PlaylistScreen() {
   const navigation = useNavigation<PlaylistNavProp>()
   const route      = useRoute<PlaylistRouteProp>()
-  const insets     = useSafeAreaInsets()
 
   // Params recibidos desde LibraryScreen
   const { id } = route.params
@@ -106,7 +105,7 @@ export default function PlaylistScreen() {
   )
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <FlatList
         data={playlist.songs}
         renderItem={renderSong}
@@ -181,7 +180,7 @@ export default function PlaylistScreen() {
       />
 
       <MiniPlayer />
-    </View>
+    </SafeAreaView>
   )
 }
 
