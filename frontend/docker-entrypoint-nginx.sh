@@ -1,0 +1,24 @@
+#!/bin/sh
+PORT=${PORT:-8080}
+
+cat > /etc/nginx/conf.d/default.conf << EOF
+server {
+    listen ${PORT};
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+EOF
+
+exec nginx -g "daemon off;"
