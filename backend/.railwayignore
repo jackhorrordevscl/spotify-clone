@@ -1,0 +1,5 @@
+# backend/.railwayignore
+Dockerfile
+Dockerfile.dev
+docker-compose*.yml
+.dockerignore
