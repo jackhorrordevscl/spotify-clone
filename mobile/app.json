@@ -25,6 +25,7 @@
       },
       "package": "com.arctic.music",
       "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
@@ -44,6 +45,12 @@
           "microphonePermission": false
         }
       ]
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a98e3ca8-3e9f-42de-9a67-ed84f10e8152"
+    }
   }
 }
