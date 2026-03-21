@@ -1,14 +1,14 @@
 # backend/Dockerfile
 
 # ── Etapa 1: dependencias ──────────────────────────────
-FROM node:22-alpine AS deps
+FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 # Sin postinstall, npm ci solo instala dependencias
 RUN npm ci
 
 # ── Etapa 2: build ─────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copiar dependencias de la etapa anterior
@@ -24,7 +24,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # ── Etapa 3: runner ────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Solo dependencias de producción
