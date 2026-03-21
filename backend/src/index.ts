@@ -1,12 +1,15 @@
 import express, { Router } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 import authRoutes from './routes/auth.routes'
 import songRoutes from './routes/song.routes'
 import playlistRoutes from './routes/playlist.routes'
 import likedSongRoutes from './routes/likedSong.routes'
 
-dotenv.config()
+
 
 const app = express()
 const PORT = process.env.PORT || 3001
