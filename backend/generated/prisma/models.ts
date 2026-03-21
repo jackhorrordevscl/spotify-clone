@@ -8,10 +8,10 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/User.ts'
-export type * from './models/Song.ts'
-export type * from './models/Album.ts'
-export type * from './models/Playlist.ts'
-export type * from './models/PlaylistSong.ts'
-export type * from './models/LikedSong.ts'
-export type * from './commonInputTypes.ts'
+export type * from './models/User'
+export type * from './models/Song'
+export type * from './models/Album'
+export type * from './models/Playlist'
+export type * from './models/PlaylistSong'
+export type * from './models/LikedSong'
+export type * from './commonInputTypes'

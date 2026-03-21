@@ -12,7 +12,7 @@
  */
 
 import * as runtime from "@prisma/client/runtime/client"
-import type * as Prisma from "./prismaNamespace.ts"
+import type * as Prisma from "./prismaNamespace"
 
 
 const config: runtime.GetPrismaClientConfig = {
@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.5.0",
   "engineVersion": "280c870be64f457428992c43c1f6d557fab6e29e",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider   = \"prisma-client\"\n  output     = \"../generated/prisma\"\n  engineType = \"client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id        String   @id @default(uuid())\n  email     String   @unique\n  password  String\n  name      String\n  avatarUrl String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  songs      Song[]\n  playlist   Playlist[]\n  likedSongs LikedSong[]\n}\n\nmodel Song {\n  id        String   @id @default(uuid())\n  title     String\n  duration  Int //Duración en segundos...\n  audioUrl  String //URL de Cloudinary...\n  coverUrl  String? //Imagen de portada...\n  plays     Int      @default(0)\n  createdAt DateTime @default(now())\n\n  authorId String\n  author   User   @relation(fields: [authorId], references: [id])\n\n  albumId String?\n  album   Album?  @relation(fields: [albumId], references: [id])\n\n  likedBy  LikedSong[]\n  playlist PlaylistSong[]\n}\n\nmodel Album {\n  id        String   @id @default(uuid())\n  title     String\n  coverUrl  String?\n  createdAt DateTime @default(now())\n\n  songs Song[]\n}\n\nmodel Playlist {\n  id        String   @id @default(uuid())\n  title     String\n  coverUrl  String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  userId String\n  user   User   @relation(fields: [userId], references: [id])\n\n  songs PlaylistSong[]\n}\n\n//Tabla intermediaria para la relación muchos a muchos entre Playlist y Song\nmodel PlaylistSong {\n  playlistId String\n  songId     String\n  addedAt    DateTime @default(now())\n\n  playlist Playlist @relation(fields: [playlistId], references: [id])\n  song     Song     @relation(fields: [songId], references: [id])\n\n  @@id([playlistId, songId]) // Clave primaria compuesta\n}\n\nmodel LikedSong {\n  userId  String\n  songId  String\n  likedAt DateTime @default(now())\n\n  user User @relation(fields: [userId], references: [id])\n  song Song @relation(fields: [songId], references: [id])\n\n  @@id([userId, songId]) // Un usuario no puede dar like dos veces a la misma canción\n}\n",
+  "inlineSchema": "generator client {\n  provider   = \"prisma-client\"\n  output     = \"../generated/prisma\"\n  engineType = \"library\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id        String   @id @default(uuid())\n  email     String   @unique\n  password  String\n  name      String\n  avatarUrl String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  songs      Song[]\n  playlist   Playlist[]\n  likedSongs LikedSong[]\n}\n\nmodel Song {\n  id        String   @id @default(uuid())\n  title     String\n  duration  Int //Duración en segundos...\n  audioUrl  String //URL de Cloudinary...\n  coverUrl  String? //Imagen de portada...\n  plays     Int      @default(0)\n  createdAt DateTime @default(now())\n\n  authorId String\n  author   User   @relation(fields: [authorId], references: [id])\n\n  albumId String?\n  album   Album?  @relation(fields: [albumId], references: [id])\n\n  likedBy  LikedSong[]\n  playlist PlaylistSong[]\n}\n\nmodel Album {\n  id        String   @id @default(uuid())\n  title     String\n  coverUrl  String?\n  createdAt DateTime @default(now())\n\n  songs Song[]\n}\n\nmodel Playlist {\n  id        String   @id @default(uuid())\n  title     String\n  coverUrl  String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  userId String\n  user   User   @relation(fields: [userId], references: [id])\n\n  songs PlaylistSong[]\n}\n\n//Tabla intermediaria para la relación muchos a muchos entre Playlist y Song\nmodel PlaylistSong {\n  playlistId String\n  songId     String\n  addedAt    DateTime @default(now())\n\n  playlist Playlist @relation(fields: [playlistId], references: [id])\n  song     Song     @relation(fields: [songId], references: [id])\n\n  @@id([playlistId, songId]) // Clave primaria compuesta\n}\n\nmodel LikedSong {\n  userId  String\n  songId  String\n  likedAt DateTime @default(now())\n\n  user User @relation(fields: [userId], references: [id])\n  song Song @relation(fields: [songId], references: [id])\n\n  @@id([userId, songId]) // Un usuario no puede dar like dos veces a la misma canción\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -45,10 +45,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),
+  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   },
 
