@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "dist/src/index.js",
   "scripts": {
-    "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
     "build": "tsc",
