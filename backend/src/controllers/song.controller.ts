@@ -3,7 +3,10 @@ import prisma from "../config/prisma";
 import { uploadToCloudinary } from "../config/uploadtoCloudinary";
 
 //POST /api/songs - subir una canción
-export const uploadSong = async (req: Request, res: Response) => {
+export const uploadSong = async (
+  req: Request<{ id: string}>,
+  res: Response
+) => {
   try {
     const { title, albumId } = req.body;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -61,8 +64,35 @@ export const uploadSong = async (req: Request, res: Response) => {
   }
 };
 
+export const streamSong = async (
+  req: Request<{ id: string }>,
+  res: Response,
+) => {
+  try {
+    const id = req.params.id;
+
+    const song = await prisma.song.findUnique({
+      where: { id },
+    });
+
+    if (!song || !song.audioUrl) {
+      res.status(404).json({ message: "Audio no encontrado" });
+      return;
+    }
+
+    // 🔥 REDIRECCIÓN directa a Cloudinary (mejor opción)
+    return res.redirect(song.audioUrl);
+  } catch (e) {
+    console.error("Error en streamSong:", e);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
 //GET /api/songs - OBTENER LAS CANCIONES
-export const getAllSongs = async (req: Request, res: Response) => {
+export const getAllSongs = async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
   try {
     const songs = await prisma.song.findMany({
       include: {
@@ -84,9 +114,12 @@ export const getAllSongs = async (req: Request, res: Response) => {
 };
 
 //GET /API/SONGS/:ID - OBTENER CANCIONES POR ID
-export const getSongById = async (req: Request, res: Response) => {
+export const getSongById = async (
+  req: Request<{ id: string }>,
+   res: Response
+) => {
   try {
-    const id  = req.params['id'] as string
+    const id = req.params["id"] as string;
 
     const song = await prisma.song.findUnique({
       where: { id },
@@ -112,7 +145,7 @@ export const getSongById = async (req: Request, res: Response) => {
 };
 
 //GET /API/SONGS/SEARCH?Q=QUERY - BUSCAR CANCIONES
-export const searchSongs = async (req: Request, res: Response) => {
+export const searchSongs = async (req: Request<{ id: string }>, res: Response) => {
   try {
     const { q } = req.query;
 
@@ -143,9 +176,9 @@ export const searchSongs = async (req: Request, res: Response) => {
 };
 
 //PATCH /api/songs/:id/play - INCREMENTAR CONTADOR DE REPRODUCCIONES
-export const incrementPlays = async (req: Request, res: Response) => {
+export const incrementPlays = async (req: Request<{ id: string }>, res: Response) => {
   try {
-    const id  = req.params['id'] as string;
+    const id = req.params["id"] as string;
 
     await prisma.song.update({
       where: { id },
@@ -156,4 +189,4 @@ export const incrementPlays = async (req: Request, res: Response) => {
     console.error("Error en incrementPlays:", e);
     res.status(500).json({ message: "Error interno del servidor" });
   }
-}
+};
