@@ -4,7 +4,8 @@ import {
     getAllSongs,
     getSongById,
     searchSongs,
-    incrementPlays
+    incrementPlays,
+    streamSong
 } from '../controllers/song.controller'
 import authMiddleware from '../middlewares/auth.middleware'
 import upload from '../config/multer'
@@ -14,6 +15,7 @@ const router = Router()
 //RUTAS PUBLICAS
 router.get('/', getAllSongs)
 router.get("/search", searchSongs);
+router.get("/stream/:id", streamSong);
 router.get("/:id", getSongById);
 router.patch("/:id/play", incrementPlays);
 
