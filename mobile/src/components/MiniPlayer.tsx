@@ -75,7 +75,9 @@ export default function MiniPlayer() {
           >
             <View style={styles.trackBg}>
               {/* CORRECCIÓN: usar width en % en lugar de flex para la barra */}
-              <View style={{ width: `${progress * 100}%` as `${number}%` }} />
+              <View style={[
+                styles.thinLineFill,
+                { width: `${progress * 100}%` as any }]} />
             </View>
           </TouchableOpacity>
 

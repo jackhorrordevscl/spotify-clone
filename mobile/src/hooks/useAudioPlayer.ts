@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import { usePlayerStore } from "../store/playerStore";
 import api from "../api/api";
@@ -7,10 +7,10 @@ export const useAudioPlayer = () => {
   const { currentSong, isPlaying, volume, setCurrentTime, playNext } =
     usePlayerStore();
   const soundRef = useRef<Audio.Sound | null>(null);
-  const loadingRef = useRef<string | null>(null);
+  const loadingId = useRef<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false); // ✅ Control de carga real
 
   useEffect(() => {
-    //Configuración global necesaria para Android
     Audio.setAudioModeAsync({
       playsInSilentModeIOS: true,
       staysActiveInBackground: true,
@@ -26,74 +26,71 @@ export const useAudioPlayer = () => {
     }
   };
 
+  // EFECTO DE CARGA
   useEffect(() => {
     if (!currentSong?.id) return;
 
-    let isMounted = true;
-
     const loadAudio = async () => {
-      //no reintentar recargar canción si ya se está cargando
-      if (loadingRef.current === currentSong.id) return;
+      if (loadingId.current === currentSong.id) return;
+
+      setIsLoaded(false); // Bloquear comandos hasta que cargue
 
       try {
-        //limpiar rastros de la carga anterior antes de cargar uno nuevo
         if (soundRef.current) {
           await soundRef.current.unloadAsync();
           soundRef.current = null;
         }
 
-        loadingRef.current = currentSong.id;
+        loadingId.current = currentSong.id;
 
-        //creación y carga del sonido
+        // ✅ URL LIMPIA (sin espacios) y asegurando que sea absoluta
+        const streamUrl =
+          `${api.defaults.baseURL}/songs/stream/${currentSong.id}`.trim();
+
         const { sound } = await Audio.Sound.createAsync(
-          { uri: `${api.defaults.baseURL}/songs/stream/${currentSong.id}` },
+          { uri: streamUrl },
           {
-            shouldPlay: isPlaying, // si el store confirma que está en play, sonido empieza
+            shouldPlay: isPlaying, // Si ya estaba en play, inicia solo al cargar
             volume: volume,
           },
           onPlaybackStatusUpdate,
         );
-        if (isMounted) {
-          soundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
+
+        soundRef.current = sound;
+        setIsLoaded(true); // ✅ Liberar comandos de play/pause
       } catch (e) {
-        console.error("Error crítico en useAudioPlayer:", e);
-        loadingRef.current = null;
+        console.error("Error en Railway Stream:", e);
+        loadingId.current = null;
       }
     };
 
     loadAudio();
-    return () => {
-      isMounted = false;
-    };
   }, [currentSong?.id]);
 
+  // EFECTO DE CONTROL (Sincronizado con isLoaded)
   useEffect(() => {
     const syncStatus = async () => {
-      if (!soundRef.current) return;
+      // 🛑 No hacer nada si el sonido no existe o no ha terminado de cargar
+      if (!soundRef.current || !isLoaded) return;
 
-      const status = await soundRef.current.getStatusAsync();
-      if (!status.isLoaded) return;
-
-      if (isPlaying) {
-        await soundRef.current.playAsync();
-      } else {
-        await soundRef.current.pauseAsync();
+      try {
+        if (isPlaying) {
+          await soundRef.current.playAsync();
+        } else {
+          await soundRef.current.pauseAsync();
+        }
+      } catch (e) {
+        console.log("Error al sincronizar audio:", e);
       }
     };
+
     syncStatus();
-  }, [isPlaying]); //se dispara cuando cambia el estado de play/pause
+  }, [isPlaying, isLoaded]); // Reacciona al cambio de Play O al terminar la carga
 
-  const seek = async (time: number) => {
-    if (!soundRef.current) return;
-    try {
+  return {
+    seek: async (time: number) => {
+      if (!soundRef.current || !isLoaded) return;
       await soundRef.current.setPositionAsync(time * 1000);
-    } catch (e) {
-      console.log("Seek Error (useAudioPlayer.ts): ", e);
-    }
+    },
   };
-
-  return { seek };
 };
