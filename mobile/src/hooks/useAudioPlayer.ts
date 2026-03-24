@@ -27,7 +27,9 @@ export const useAudioPlayer = () => {
   };
 
   useEffect(() => {
-    if (!currentSong) return;
+    if (!currentSong?.id) return;
+
+    let isMounted = true;
 
     const loadAudio = async () => {
       //no reintentar recargar canción si ya se está cargando
@@ -39,18 +41,23 @@ export const useAudioPlayer = () => {
           await soundRef.current.unloadAsync();
           soundRef.current = null;
         }
+
         loadingRef.current = currentSong.id;
 
         //creación y carga del sonido
         const { sound } = await Audio.Sound.createAsync(
-          { uri: ` ${api.defaults.baseURL}/songs/stream/${currentSong.id}` },
+          { uri: `${api.defaults.baseURL}/songs/stream/${currentSong.id}` },
           {
             shouldPlay: isPlaying, // si el store confirma que está en play, sonido empieza
             volume: volume,
           },
           onPlaybackStatusUpdate,
         );
-        soundRef.current = sound;
+        if (isMounted) {
+          soundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
       } catch (e) {
         console.error("Error crítico en useAudioPlayer:", e);
         loadingRef.current = null;
@@ -58,9 +65,11 @@ export const useAudioPlayer = () => {
     };
 
     loadAudio();
-  }, [currentSong?.id]); //solo se dispara cuando cambia la canción
+    return () => {
+      isMounted = false;
+    };
+  }, [currentSong?.id]);
 
-  // efecto maneja play/pause al tocarlos
   useEffect(() => {
     const syncStatus = async () => {
       if (!soundRef.current) return;
@@ -79,10 +88,10 @@ export const useAudioPlayer = () => {
 
   const seek = async (time: number) => {
     if (!soundRef.current) return;
-    try{
+    try {
       await soundRef.current.setPositionAsync(time * 1000);
     } catch (e) {
-      console.log('Seek Error (useAudioPlayer.ts): ', e);
+      console.log("Seek Error (useAudioPlayer.ts): ", e);
     }
   };
 
