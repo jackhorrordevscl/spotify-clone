@@ -24,17 +24,8 @@ import HomeScreen from "../screens/HomeScreen";
 import SearchScreen from "../screens/SearchScreen";
 import LibraryScreen from "../screens/LibraryScreen";
 import PlaylistScreen from "../screens/PlaylistScreen";
-
-const colors = {
-  bgPrimary: "#080d12",
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-};
+import MiniPlayer from "../components/MiniPlayer";
+import { colors } from "../theme/colors";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -43,7 +34,7 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   Tabs: undefined;
-  Playlist: { id: string; title: string };
+  Playlist: { id: string; title: string };  
 };
 
 export type TabParamList = {
@@ -222,32 +213,34 @@ const menuStyles = StyleSheet.create({
 
 // ─── TAB NAVIGATOR ────────────────────────────────────────
 function TabNavigator() {
+  // ✅ Obtener insets del Safe Area Context para Android
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        // CORRECCIÓN: headerShown: true para mostrar el header con el botón de usuario
         headerShown: true,
         headerStyle: {
           backgroundColor: colors.bgSecondary,
         },
-        // Título "Arctic" en el header de todas las tabs
         headerTitle: "Arctic",
         headerTitleStyle: {
           color: colors.accent,
           fontSize: 20,
           fontWeight: "700",
         },
-        // CORRECCIÓN: botón de menú de usuario a la derecha del header
         headerRight: () => <UserMenuButton />,
         headerShadowVisible: false,
 
+        // ✅ CORRECCIÓN ANDROID: Tab bar respeta el navigation bar del sistema
+        // Usando insets.bottom para agregar espacio y posicionar correctamente
         tabBarStyle: {
           backgroundColor: colors.bgSecondary,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 64,
+          paddingTop: 4,
+          paddingBottom: insets.bottom + 4, // ✅ Safe area bottom + padding
+          height: 56 + insets.bottom, // ✅ Altura ajustada con inset
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
@@ -255,6 +248,7 @@ function TabNavigator() {
           fontSize: 10,
           fontWeight: "500",
           marginTop: 2,
+          marginBottom: 4, // ✅ Espaciar texto del ícono
         },
         tabBarIcon: ({ focused, color }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
@@ -306,14 +300,19 @@ function MainNavigator() {
   }, []);
 
   return (
-    <MainStack.Navigator screenOptions={{ headerShown: false }}>
-      <MainStack.Screen name="Tabs" component={TabNavigator} />
-      <MainStack.Screen
-        name="Playlist"
-        component={PlaylistScreen}
-        options={{ animation: "slide_from_right" }}
-      />
-    </MainStack.Navigator>
+    <View style={{ flex: 1 }}>
+      <MainStack.Navigator screenOptions={{ headerShown: false }}>
+        <MainStack.Screen name="Tabs" component={TabNavigator} />
+        <MainStack.Screen
+          name="Playlist"
+          component={PlaylistScreen}
+          options={{ animation: "slide_from_right" }}
+        />
+      </MainStack.Navigator>
+      {/* ✅ CORRECCIÓN: MiniPlayer montado UNA SOLA VEZ a nivel global */}
+      {/* Esto evita múltiples instancias de useAudioPlayer que reproducen audio doblemente */}
+      <MiniPlayer />
+    </View>
   );
 }
 

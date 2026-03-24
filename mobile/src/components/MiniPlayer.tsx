@@ -1,4 +1,3 @@
-// mobile/src/components/MiniPlayer.tsx
 import { useState, useRef } from "react";
 import {
   View,
@@ -8,21 +7,12 @@ import {
   StyleSheet,
   LayoutChangeEvent,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import { usePlayerStore } from "../store/playerStore";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
-
-const colors = {
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-};
+import { colors } from "../theme/colors";
 
 const formatTime = (s: number) => {
   const m = Math.floor(s / 60);
@@ -31,6 +21,7 @@ const formatTime = (s: number) => {
 };
 
 export default function MiniPlayer() {
+  const insets = useSafeAreaInsets(); //INSETS DEL SISTEMA  
   const {
     currentSong,
     isPlaying,
@@ -40,7 +31,6 @@ export default function MiniPlayer() {
     playPrev,
   } = usePlayerStore();
   const { seek } = useAudioPlayer();
-  const insets = useSafeAreaInsets();
 
   const [expanded, setExpanded] = useState(false);
   // Ancho real del track medido con onLayout — necesario para calcular el seek
@@ -66,10 +56,10 @@ export default function MiniPlayer() {
   };
 
   return (
-    // paddingBottom evita que el home indicator tape el contenido (iPhone)
-    // Math.max asegura al menos 8px incluso en Android
+    // ✅ ANDROID: Altura mínima de 70px para asegurar que se vea sobre la barra de navegación
+    // La barra de navegación mide aprox. 24-30px, por lo que necesitamos espacio extra
     <View
-      style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}
+      style={[styles.container, { bottom: 49 + (insets.bottom > 0 ? insets.bottom : 10) } ]}
     >
       {/* ── BARRA DE PROGRESO EXPANDIDA ── */}
       {expanded && (
@@ -79,7 +69,7 @@ export default function MiniPlayer() {
           {/* Zona tocable del track — mide su propio ancho con onLayout */}
           <TouchableOpacity
             style={styles.trackTouchable}
-            activeOpacity={1}
+            activeOpacity={0.9}
             onPress={handleSeek}
             onLayout={handleTrackLayout}
           >
@@ -97,7 +87,10 @@ export default function MiniPlayer() {
 
       {/* ── LÍNEA DELGADA SIEMPRE VISIBLE ── */}
       <View style={styles.thinLine}>
-        <View style={{ width: `${progress}%` as `${number}%` }} />
+        <View style={[
+          styles.thinLineFill,
+          { width: `${progress * 100}%` as any} // x 100
+          ]} />
       </View>
 
       {/* ── FILA PRINCIPAL ── */}
@@ -169,9 +162,21 @@ export default function MiniPlayer() {
 
 const styles = StyleSheet.create({
   container: {
+    // ✅ Cambios clave en el estilo:
+    position: "absolute",
+    left: 8,
+    right: 8,
     backgroundColor: colors.bgSecondary,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    // Sombra para que se note que flota sobre el menú
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    overflow: "hidden",
   },
 
   // Línea fina de progreso

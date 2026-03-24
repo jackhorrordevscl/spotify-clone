@@ -8,6 +8,9 @@ const apiUrl =
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
   "http://192.168.1.183:3001/api"; // fallback hardcodeado si todo lo demás falla
 
+// Clave para almacenar el token en SecureStore
+export const TOKEN_KEY = "arctic_token";
+
 export const config = {
   apiUrl,
 } as const;

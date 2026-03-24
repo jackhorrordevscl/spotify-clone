@@ -14,20 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import api from "../api/api";
-import SongCard from "../components/SongCard"; // CORRECCIÓN: sin importar CARD_WIDTH
-import MiniPlayer from "../components/MiniPlayer";
+import SongCard from "../components/SongCard";
 import type { Song } from "../types";
-
-const colors = {
-  bgPrimary: "#080d12",
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-};
+import { colors } from "../theme/colors";
 
 export default function SearchScreen() {
   const { width } = useWindowDimensions();
@@ -152,7 +141,6 @@ export default function SearchScreen() {
         />
       )}
 
-      <MiniPlayer />
     </SafeAreaView>
   );
 }

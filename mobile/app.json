@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#080d12"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arctic.music"
@@ -24,10 +22,7 @@
         "backgroundColor": "#080d12"
       },
       "package": "com.arctic.music",
-      "permissions": [
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
-      ],
+      "permissions": ["android.permission.MODIFY_AUDIO_SETTINGS"],
       "statusBarColor": "#080d12",
       "statusBarStyle": "dark",
       "navigationBarColor": "#080d12"
@@ -45,7 +40,7 @@
       [
         "expo-av",
         {
-          "microphonePermission": false
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
         }
       ],
       [

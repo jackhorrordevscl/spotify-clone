@@ -1,4 +1,3 @@
-// mobile/src/hooks/useAudioPlayer.ts
 import { useEffect, useRef } from "react";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import { usePlayerStore } from "../store/playerStore";
@@ -7,75 +6,83 @@ import api from "../api/api";
 export const useAudioPlayer = () => {
   const { currentSong, isPlaying, volume, setCurrentTime, playNext } =
     usePlayerStore();
-
   const soundRef = useRef<Audio.Sound | null>(null);
+  const loadingRef = useRef<string | null>(null);
 
-  // Configurar el modo de audio al montar el hook
-  // Permite reproducir con el dispositivo en silencio (importante en iOS)
   useEffect(() => {
+    //Configuración global necesaria para Android
     Audio.setAudioModeAsync({
       playsInSilentModeIOS: true,
       staysActiveInBackground: true,
+      shouldDuckAndroid: true,
     });
   }, []);
 
-  // Cambio de canción — cargar y reproducir
+  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+    setCurrentTime(status.positionMillis / 1000);
+    if (status.didJustFinish && !status.isLooping) {
+      playNext();
+    }
+  };
+
   useEffect(() => {
     if (!currentSong) return;
 
-    const loadAndPlay = async () => {
-      // Descargar el sonido anterior antes de cargar el nuevo
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
+    const loadAudio = async () => {
+      //no reintentar recargar canción si ya se está cargando
+      if (loadingRef.current === currentSong.id) return;
+
+      try {
+        //limpiar rastros de la carga anterior antes de cargar uno nuevo
+        if (soundRef.current) {
+          await soundRef.current.unloadAsync();
+          soundRef.current = null;
+        }
+        loadingRef.current = currentSong.id;
+
+        //creación y carga del sonido
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: ` ${api.defaults.baseURL}/songs/stream/${currentSong.id}` },
+          {
+            shouldPlay: isPlaying, // si el store confirma que está en play, sonido empieza
+            volume: volume,
+          },
+          onPlaybackStatusUpdate,
+        );
+        soundRef.current = sound;
+      } catch (e) {
+        console.error("Error crítico en useAudioPlayer:", e);
+        loadingRef.current = null;
       }
-
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: currentSong.audioUrl },
-        { shouldPlay: false, volume },
-      );
-
-      soundRef.current = sound;
-
-      // Actualizar el tiempo actual y detectar cuando termina la canción
-      sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-        if (!status.isLoaded) return;
-        setCurrentTime(status.positionMillis / 1000);
-        if (status.didJustFinish) playNext();
-      });
-
-      // Registrar la reproducción en la API
-      api.patch(`/songs/${currentSong.id}/play`).catch(() => {});
     };
 
-    loadAndPlay().catch(console.error);
+    loadAudio();
+  }, [currentSong?.id]); //solo se dispara cuando cambia la canción
 
-    // Cleanup: descargar el audio al desmontar o cambiar de canción
-    return () => {
-      soundRef.current?.unloadAsync();
+  // efecto maneja play/pause al tocarlos
+  useEffect(() => {
+    const syncStatus = async () => {
+      if (!soundRef.current) return;
+
+      const status = await soundRef.current.getStatusAsync();
+      if (!status.isLoaded) return;
+
+      if (isPlaying) {
+        await soundRef.current.playAsync();
+      } else {
+        await soundRef.current.pauseAsync();
+      }
     };
-  }, [currentSong]);
+    syncStatus();
+  }, [isPlaying]); //se dispara cuando cambia el estado de play/pause
 
-  // Play / Pause
-  useEffect(() => {
-    if (!soundRef.current) return;
-    if (isPlaying) {
-      soundRef.current.playAsync().catch(console.error);
-    } else {
-      soundRef.current.pauseAsync().catch(console.error);
-    }
-  }, [isPlaying]);
-
-  // Volumen
-  useEffect(() => {
-    soundRef.current?.setVolumeAsync(volume).catch(console.error);
-  }, [volume]);
-
-  // Seek manual desde el MiniPlayer
   const seek = async (time: number) => {
-    if (soundRef.current) {
+    if (!soundRef.current) return;
+    try{
       await soundRef.current.setPositionAsync(time * 1000);
-      setCurrentTime(time);
+    } catch (e) {
+      console.log('Seek Error (useAudioPlayer.ts): ', e);
     }
   };
 

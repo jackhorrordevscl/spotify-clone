@@ -16,22 +16,12 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/authStore";
 import type { AuthStackParamList } from "../navigation/AppNavigator";
+import { colors } from "../theme/colors";
 
 type RegisterNavProp = NativeStackNavigationProp<
   AuthStackParamList,
   "Register"
 >;
-
-const colors = {
-  bgPrimary: "#080d12",
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-};
 
 export default function RegisterScreen() {
   const navigation = useNavigation<RegisterNavProp>();

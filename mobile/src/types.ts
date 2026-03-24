@@ -1,5 +1,12 @@
-// frontend/src/types.ts
+// mobile/src/types.ts
 // Fuente única de verdad para todos los tipos compartidos del frontend
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+}
 
 export interface Author {
   id: string;

@@ -1,13 +1,8 @@
 import { create } from "zustand";
 import api from "../api/api";
 import * as SecureStore from "expo-secure-store";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string | null;
-}
+import { TOKEN_KEY } from "../config";
+import type { User } from "../types";
 
 interface AuthStore {
   user: User | null;
@@ -18,8 +13,6 @@ interface AuthStore {
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
 }
-
-const TOKEN_KEY = "arctic_token";
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,

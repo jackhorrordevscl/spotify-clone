@@ -17,23 +17,11 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { usePlaylistStore } from "../store/playlistStore";
-import MiniPlayer from "../components/MiniPlayer";
 import type { MainStackParamList } from "../navigation/AppNavigator";
 import type { Playlist } from "../types";
+import { colors } from "../theme/colors";
 
 type LibraryNavProp = NativeStackNavigationProp<MainStackParamList>;
-
-const colors = {
-  bgPrimary: "#080d12",
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-  error: "#f87171",
-};
 
 export default function LibraryScreen() {
   const navigation = useNavigation<LibraryNavProp>();
@@ -188,8 +176,6 @@ export default function LibraryScreen() {
           ) : null
         }
       />
-
-      <MiniPlayer />
     </SafeAreaView>
   );
 }

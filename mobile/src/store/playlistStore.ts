@@ -1,31 +1,9 @@
 import { create } from "zustand";
 import api from "../api/api";
+import type { Playlist, PlaylistSong } from "../types";
 
-export interface PlaylistSong {
-  songId: string;
-  addedAt: string;
-  song: {
-    id: string;
-    title: string;
-    audioUrl: string;
-    coverUrl: string | null;
-    duration: number;
-    plays: number;
-    author: {
-      id: string;
-      name: string;
-      avatarUrl: string | null;
-    };
-  };
-}
-
-export interface Playlist {
-  id: string;
-  title: string;
-  coverUrl: string | null;
-  createdAt: string;
-  songs: PlaylistSong[];
-}
+// Re-export para compatibilidad con imports existentes
+export type { PlaylistSong, Playlist };
 
 interface PlaylistStore {
   playlists: Playlist[];

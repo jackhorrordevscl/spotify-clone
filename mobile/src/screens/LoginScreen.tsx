@@ -25,6 +25,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 
 import { useAuthStore } from "../store/authStore";
+import { colors } from "../theme/colors";
 
 // Tipo del stack de rutas para que TypeScript sepa a dónde podemos navegar
 type RootStackParamList = {
@@ -33,19 +34,6 @@ type RootStackParamList = {
   Main: undefined;
 };
 type LoginNavProp = NativeStackNavigationProp<RootStackParamList, "Login">;
-
-// Paleta Arctic — mismos valores que index.css del frontend
-const colors = {
-  bgPrimary: "#080d12",
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-  error: "#f87171",
-};
 
 export default function LoginScreen() {
   const navigation = useNavigation<LoginNavProp>();

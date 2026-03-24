@@ -11,28 +11,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../store/playerStore";
 import { useLikedStore } from "../store/likedStore";
 import type { Song } from "../types";
+import { colors } from "../theme/colors";
 
-// CORRECCIÓN: exportamos una función en vez de una constante fija
-// Así cada componente calcula el ancho según el tamaño actual de pantalla
+// Calcula el ancho de la tarjeta dinámicamente según el tamaño de pantalla
+// Se actualiza automáticamente al rotar el dispositivo
 export function useCardWidth() {
   const { width } = useWindowDimensions();
   // 16px padding izquierdo + 16px padding derecho + 12px gap entre columnas
   return (width - 32 - 12) / 2;
 }
-
-// Compatibilidad hacia atrás con SearchScreen que importa CARD_WIDTH
-// TODO: actualizar SearchScreen para usar useCardWidth()
-export const CARD_WIDTH = 0;
-
-const colors = {
-  bgSecondary: "#0d1520",
-  bgTertiary: "#162030",
-  accent: "#00b4d8",
-  textPrimary: "#f0f9ff",
-  textSecondary: "#7eb8cc",
-  textMuted: "#3d6478",
-  border: "#1e3448",
-};
 
 const formatDuration = (seconds: number) => {
   const m = Math.floor(seconds / 60);
