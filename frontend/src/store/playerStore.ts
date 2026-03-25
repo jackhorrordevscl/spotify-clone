@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Song } from "../hooks/useSongs"
+import { Song } from "../hooks/useSongs";
 
 interface PlayerStore {
   currentSong: Song | null;
@@ -38,15 +38,25 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     const { currentSong, queue } = get();
     if (!currentSong || queue.length === 0) return;
     const idx = queue.findIndex((s) => s.id === currentSong.id);
-    const next = queue[idx + 1];
-    if (next) set({ currentSong: next, isPlaying: true, currentTime: 0 });
+    let next = queue[idx + 1];
+    if (!next && queue.length > 0) {
+      next = queue[0];
+    }
+    if (next) {
+      set({ currentSong: next, isPlaying: true, currentTime: 0 });
+    }
   },
 
   playPrev: () => {
     const { currentSong, queue } = get();
     if (!currentSong || queue.length === 0) return;
     const idx = queue.findIndex((s) => s.id === currentSong.id);
-    const prev = queue[idx - 1];
-    if (prev) set({ currentSong: prev, isPlaying: true, currentTime: 0 });
+    let prev = queue[idx - 1];
+    if (!prev && queue.length > 0) {
+      prev = queue[queue.length - 1];
+    }
+    if (prev) {
+      set({ currentSong: prev, isPlaying: true, currentTime: 0 });
+    }
   },
 }));

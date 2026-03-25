@@ -27,8 +27,12 @@ export const useAudioPlayer = () => {
     audioRef.current.volume = volume;
 
     if (isPlaying) {
-      audioRef.current.play().catch(console.error);
-      api.patch(`/songs/${currentSong.id}/play`).catch(() => {});
+      audioRef.current
+      .play()
+      .then(()=> {
+        api.patch(`/songs/${currentSong.id}/play`).catch(() => {});
+      })
+      .catch(console.error);
     }
 
     audioRef.current.ontimeupdate = () => {

@@ -151,7 +151,7 @@ const Player = () => {
               className="text-xs truncate"
               style={{ color: "var(--text-secondary)", marginTop: "0.2rem" }}
             >
-              {currentSong.author.name}
+              {currentSong.artist.name}
             </p>
           </div>
         </div>
