@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model Artist
+ * 
+ */
+export type Artist = Prisma.ArtistModel
+/**
  * Model Song
  * 
  */

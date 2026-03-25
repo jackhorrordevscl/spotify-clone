@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Artist: 'Artist',
   Song: 'Song',
   Album: 'Album',
   Playlist: 'Playlist',
@@ -88,6 +89,16 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ArtistScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  avatarUrl: 'avatarUrl',
+  createdAt: 'createdAt'
+} as const
+
+export type ArtistScalarFieldEnum = (typeof ArtistScalarFieldEnum)[keyof typeof ArtistScalarFieldEnum]
+
+
 export const SongScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -97,6 +108,7 @@ export const SongScalarFieldEnum = {
   plays: 'plays',
   createdAt: 'createdAt',
   authorId: 'authorId',
+  artistId: 'artistId',
   albumId: 'albumId'
 } as const
 
@@ -107,7 +119,8 @@ export const AlbumScalarFieldEnum = {
   id: 'id',
   title: 'title',
   coverUrl: 'coverUrl',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  artistId: 'artistId'
 } as const
 
 export type AlbumScalarFieldEnum = (typeof AlbumScalarFieldEnum)[keyof typeof AlbumScalarFieldEnum]

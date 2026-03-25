@@ -22,6 +22,16 @@ model User {
   likedSongs  LikedSong[]
 }
 
+model Artist {
+  id          String   @id @default(uuid())
+  name        String
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+
+  songs       Song[]
+  albums     Album[]
+}
+
 model Song {
   id          String @id @default(uuid())
   title       String
@@ -33,6 +43,9 @@ model Song {
 
   authorId    String
   author      User      @relation(fields: [authorId], references: [id])
+
+  artistId    String?
+  artist      Artist?   @relation(fields: [artistId], references: [id])
 
   albumId     String?
   album       Album?    @relation(fields: [albumId], references: [id])
@@ -46,6 +59,9 @@ model Album {
   title       String
   coverUrl    String?
   createdAt   DateTime @default(now()) 
+
+  artistId    String?
+  artist      Artist?   @relation(fields: [artistId], references: [id])
 
   songs       Song[]
 }

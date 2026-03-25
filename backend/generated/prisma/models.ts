@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/Artist'
 export type * from './models/Song'
 export type * from './models/Album'
 export type * from './models/Playlist'

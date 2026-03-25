@@ -2,36 +2,37 @@ import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import { uploadToCloudinary } from "../config/uploadtoCloudinary";
 
-//POST /api/songs - subir una canción
+// POST /api/songs - subir una canción
 export const uploadSong = async (
-  req: Request<{ id: string}>,
-  res: Response
+  req: Request<{ id: string }>,
+  res: Response,
 ) => {
   try {
     const { title, albumId } = req.body;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
     if (!title) {
-      res.status(400).json({ message: "El título es requerido" });
-      return;
+      return res.status(400).json({ message: "El título es requerido" });
     }
+
     if (!files.audio || files.audio.length === 0) {
-      res.status(400).json({ message: "El archivo de audio es requerido" });
-      return;
+      return res
+        .status(400)
+        .json({ message: "El archivo de audio es requerido" });
     }
 
     const audioFile = files.audio[0];
     const coverFile = files.cover ? files.cover[0] : null;
 
-    //SUBIR AUDIO A CLOUDINARY
+    // SUBIR AUDIO
     const audioResult = await uploadToCloudinary(
       audioFile.buffer,
       "spotify-clone/songs",
-      "video", // CLOUDINARY USA 'VIDEO' PARA AUDIO
+      "video",
     );
 
-    //SUBIR PORTADA SI EXSITE
-    let coverUrl: string | undefined;
+    // SUBIR COVER
+    let coverUrl: string | null = null;
     if (coverFile) {
       const coverResult = await uploadToCloudinary(
         coverFile.buffer,
@@ -41,22 +42,49 @@ export const uploadSong = async (
       coverUrl = coverResult.url;
     }
 
-    //GUARDAR EN BASE DE DATOS
+    const userId = (req as any).userId;
+
+    // 🔥 OBTENER USUARIO
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    // 🔥 BUSCAR O CREAR ARTISTA
+    let artist = await prisma.artist.findFirst({
+      where: { name: user?.name },
+    });
+
+    if (!artist) {
+      artist = await prisma.artist.create({
+        data: {
+          name: user?.name || "Unknown Artist",
+          avatarUrl: user?.avatarUrl || null,
+        },
+      });
+    }
+
+    // 🔥 CREAR CANCIÓN
     const song = await prisma.song.create({
       data: {
         title,
         audioUrl: audioResult.url,
-        coverUrl: coverUrl ?? null,
+        coverUrl,
         duration: Math.round(audioResult.duration ?? 0),
-        authorId: (req as any).userId,
-        albumId: albumId ?? null,
+        authorId: userId,
+        artistId: artist.id,
+        albumId: albumId || null,
       },
       include: {
         author: {
           select: { id: true, name: true, avatarUrl: true },
         },
+        artist: true,
+        album: {
+          select: { id: true, title: true, coverUrl: true },
+        },
       },
     });
+
     res.status(201).json(song);
   } catch (e) {
     console.error("Error en uploadSong: ", e);
@@ -64,6 +92,7 @@ export const uploadSong = async (
   }
 };
 
+// GET /api/songs/stream/:id
 export const streamSong = async (
   req: Request<{ id: string }>,
   res: Response,
@@ -76,11 +105,9 @@ export const streamSong = async (
     });
 
     if (!song || !song.audioUrl) {
-      res.status(404).json({ message: "Audio no encontrado" });
-      return;
+      return res.status(404).json({ message: "Audio no encontrado" });
     }
 
-    // 🔥 REDIRECCIÓN directa a Cloudinary (mejor opción)
     return res.redirect(song.audioUrl);
   } catch (e) {
     console.error("Error en streamSong:", e);
@@ -88,17 +115,15 @@ export const streamSong = async (
   }
 };
 
-//GET /api/songs - OBTENER LAS CANCIONES
-export const getAllSongs = async (
-  req: Request<{ id: string }>,
-  res: Response
-) => {
+// GET /api/songs
+export const getAllSongs = async (req: Request, res: Response) => {
   try {
     const songs = await prisma.song.findMany({
       include: {
         author: {
           select: { id: true, name: true, avatarUrl: true },
         },
+        artist: true,
         album: {
           select: { id: true, title: true, coverUrl: true },
         },
@@ -109,17 +134,17 @@ export const getAllSongs = async (
     res.json(songs);
   } catch (e) {
     console.error("Error en getAllSongs:", e);
-    res.status(500).json({ message: "Error interno del servidor " });
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
 
-//GET /API/SONGS/:ID - OBTENER CANCIONES POR ID
+// GET /api/songs/:id
 export const getSongById = async (
   req: Request<{ id: string }>,
-   res: Response
+  res: Response,
 ) => {
   try {
-    const id = req.params["id"] as string;
+    const id = req.params.id;
 
     const song = await prisma.song.findUnique({
       where: { id },
@@ -127,6 +152,7 @@ export const getSongById = async (
         author: {
           select: { id: true, name: true, avatarUrl: true },
         },
+        artist: true,
         album: {
           select: { id: true, title: true, coverUrl: true },
         },
@@ -134,9 +160,9 @@ export const getSongById = async (
     });
 
     if (!song) {
-      res.status(404).json({ message: "Canción no encontrada " });
-      return;
+      return res.status(404).json({ message: "Canción no encontrada" });
     }
+
     res.json(song);
   } catch (e) {
     console.error("Error en getSongById:", e);
@@ -144,27 +170,41 @@ export const getSongById = async (
   }
 };
 
-//GET /API/SONGS/SEARCH?Q=QUERY - BUSCAR CANCIONES
-export const searchSongs = async (req: Request<{ id: string }>, res: Response) => {
+// GET /api/songs/search?q=...
+export const searchSongs = async (req: Request, res: Response) => {
   try {
     const { q } = req.query;
 
     if (!q || typeof q !== "string") {
-      res.status(400).json({ message: "Parámetro de búsqueda requerido" });
-      return;
+      return res
+        .status(400)
+        .json({ message: "Parámetro de búsqueda requerido" });
     }
 
     const songs = await prisma.song.findMany({
       where: {
-        title: {
-          contains: q,
-          mode: "insensitive", //BUSQUEDA CASE-SENSITIVE
-        },
+        OR: [
+          {
+            title: {
+              contains: q,
+              mode: "insensitive",
+            },
+          },
+          {
+            artist: {
+              name: {
+                contains: q,
+                mode: "insensitive",
+              },
+            },
+          },
+        ],
       },
       include: {
         author: {
           select: { id: true, name: true, avatarUrl: true },
         },
+        artist: true,
       },
     });
 
@@ -175,15 +215,19 @@ export const searchSongs = async (req: Request<{ id: string }>, res: Response) =
   }
 };
 
-//PATCH /api/songs/:id/play - INCREMENTAR CONTADOR DE REPRODUCCIONES
-export const incrementPlays = async (req: Request<{ id: string }>, res: Response) => {
+// PATCH /api/songs/:id/play
+export const incrementPlays = async (
+  req: Request<{ id: string }>,
+  res: Response,
+) => {
   try {
-    const id = req.params["id"] as string;
+    const id = req.params.id;
 
     await prisma.song.update({
       where: { id },
       data: { plays: { increment: 1 } },
     });
+
     res.json({ message: "Reproducción registrada" });
   } catch (e) {
     console.error("Error en incrementPlays:", e);

@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes'
 import songRoutes from './routes/song.routes'
 import playlistRoutes from './routes/playlist.routes'
 import likedSongRoutes from './routes/likedSong.routes'
+import artistRoutes from './routes/artist.routes'
 
 
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/songs', songRoutes)
 app.use('/api/playlists', playlistRoutes)
 app.use('/api/liked', likedSongRoutes)
+app.use('/api/artists', artistRoutes)
 
 app.get('/health', (req, res) => {
     res.json({ status: 'OK' })
