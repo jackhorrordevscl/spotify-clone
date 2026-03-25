@@ -100,7 +100,7 @@ export default function PlaylistScreen() {
     index: number;
   }) => (
     <View style={styles.songRow}>
-      <SongCard song={item.song} queue={songs} variant="list" index={index} />
+      <SongCard song={item.song} queue={songs} variant='list' index={index} />
       {/* Botón eliminar de la playlist — fuera del SongCard para no confundir */}
       <TouchableOpacity
         style={styles.removeBtn}

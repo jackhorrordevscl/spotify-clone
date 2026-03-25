@@ -20,9 +20,11 @@ export function useCardWidth() {
 interface Props {
   song: Song;
   queue: Song[];
+  variant?: "grid" | "list";
+  index?: number;
 }
 
-export default function SongCard({ song, queue }: Props) {
+export default function SongCard({ song, queue, variant = "grid", index }: Props) {
   const cardWidth = useCardWidth();
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayerStore();
 
@@ -40,9 +42,16 @@ export default function SongCard({ song, queue }: Props) {
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={handlePress}
-      style={[styles.container, { width: cardWidth, height: 230 }]}
+      style={[
+        styles.container,
+        variant === "grid"
+          ? { width: cardWidth, height: 230 }
+          : { width: "100%", flexDirection: "row", height: 70, alignItems: "center", gap: 10 }
+      ]}
     >
-      <View style={styles.coverContainer}>
+      <View style={[styles.coverContainer,
+        variant === "list" && { width: 50, height: 50, aspectRatio: 1, borderRadius: 6 }
+      ]}>
         {song.coverUrl ? (
           <Image source={{ uri: song.coverUrl }} style={styles.cover} />
         ) : (
@@ -62,7 +71,10 @@ export default function SongCard({ song, queue }: Props) {
         )}
       </View>
 
-      <View style={styles.info}>
+      <View style={[
+        styles.info,
+        variant === "list" && { flex: 1, justifyContent: "center" }
+        ]}>
         <Text
           numberOfLines={1}
           style={[styles.title, isCurrent && { color: colors.accent }]}
