@@ -116,7 +116,7 @@ export const streamSong = async (
 };
 
 // GET /api/songs
-export const getAllSongs = async (req: Request, res: Response) => {
+export const getAllSongs = async (req: Request<{ id: string }>, res: Response) => {
   try {
     const songs = await prisma.song.findMany({
       include: {
@@ -171,7 +171,7 @@ export const getSongById = async (
 };
 
 // GET /api/songs/search?q=...
-export const searchSongs = async (req: Request, res: Response) => {
+export const searchSongs = async (req: Request<{ id: string }>, res: Response) => {
   try {
     const { q } = req.query;
 
