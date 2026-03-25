@@ -9,7 +9,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
     "build": "tsc",
-    "migrate": "npx prisma migrate dev"
+    "migrate": "prisma migrate deploy && prisma generate && tsc"
   },
   "keywords": [],
   "author": "",

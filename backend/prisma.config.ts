@@ -6,10 +6,12 @@ import { defineConfig } from "prisma/config";
 // process.env devuelve undefined sin lanzar error
 export default defineConfig({
   schema: 'prisma/schema.prisma',
+  
   migrations: {
     path: 'prisma/migrations',
   },
+
   datasource: {
-    url: process.env.DATABASE_URL!,
+    url: process.env.DATABASE_URL,
   },
 })
