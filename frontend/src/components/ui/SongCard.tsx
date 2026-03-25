@@ -162,7 +162,7 @@ const SongCard = ({ song, queue }: Props) => {
           className="text-xs truncate"
           style={{ color: "var(--text-secondary)" }}
         >
-          {song.author.name}
+          {song.artist.name}
         </p>
 
         {/* Duración */}

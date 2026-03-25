@@ -1,17 +1,5 @@
 import { create } from "zustand";
-
-interface Song {
-  id: string;
-  title: string;
-  audioUrl: string;
-  coverUrl: string | null;
-  duration: number;
-  author: {
-    id: string;
-    name: string;
-    avatarUrl: string | null;
-  };
-}
+import { Song } from "../hooks/useSongs"
 
 interface PlayerStore {
   currentSong: Song | null;
