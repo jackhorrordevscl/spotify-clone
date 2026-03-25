@@ -1,6 +1,11 @@
 // mobile/src/hooks/useAudioPlayer.ts
 import { useEffect, useRef } from "react";
-import { Audio, AVPlaybackStatus } from "expo-av";
+import {
+  Audio,
+  AVPlaybackStatus,
+  InterruptionModeIOS,
+  InterruptionModeAndroid,
+} from "expo-av";
 import { usePlayerStore } from "../store/playerStore";
 
 export const useAudioPlayer = () => {
@@ -9,71 +14,78 @@ export const useAudioPlayer = () => {
 
   const soundRef = useRef<Audio.Sound | null>(null);
 
-  // 🔹 Cargar nueva canción
+  // Configurar audio
   useEffect(() => {
-    const loadAndPlay = async () => {
-      if (!currentSong) return;
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: true,
+      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    }).catch(console.error);
+  }, []);
 
-      // Detener y liberar audio anterior
+  useEffect(() => {
+    if (!currentSong) return;
+
+    const loadAndPlay = async () => {
+      // unload anterior
       if (soundRef.current) {
-        await soundRef.current.stopAsync().catch(() => {});
         await soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current.setOnPlaybackStatusUpdate(null);
+        soundRef.current = null;
       }
 
       const { sound } = await Audio.Sound.createAsync(
         { uri: currentSong.audioUrl },
         { shouldPlay: isPlaying, volume },
-        (status: AVPlaybackStatus) => {
-          // ✅ Solo procesar si es un estado válido
-          if (!status.isLoaded) return;
-
-          setCurrentTime((status.positionMillis ?? 0) / 1000);
-
-          if ((status as any).didJustFinish) {
-            playNext();
-          }
-        },
       );
 
       soundRef.current = sound;
+
+      sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
+        if (!status.isLoaded) return;
+
+        if ("positionMillis" in status) {
+          setCurrentTime(status.positionMillis / 1000);
+        }
+        if ("didJustFinish" in status && status.didJustFinish) {
+          playNext();
+        }
+      });
+
+      if (isPlaying) {
+        await sound.playAsync();
+      }
     };
 
-    loadAndPlay();
+    loadAndPlay().catch(console.error);
+
+    return () => {
+      soundRef.current?.unloadAsync().catch(console.error);
+    };
   }, [currentSong]);
 
-  // 🔹 Play / Pause
   useEffect(() => {
     if (!soundRef.current) return;
     if (isPlaying) {
-      soundRef.current.playAsync().catch(() => {});
+      soundRef.current.playAsync().catch(console.error);
     } else {
-      soundRef.current.pauseAsync().catch(() => {});
+      soundRef.current.pauseAsync().catch(console.error);
     }
   }, [isPlaying]);
 
-  // 🔹 Volumen
   useEffect(() => {
-    if (soundRef.current) {
-      soundRef.current.setVolumeAsync(volume).catch(() => {});
-    }
+    soundRef.current?.setVolumeAsync(volume).catch(console.error);
   }, [volume]);
 
-  // 🔹 Seek manual
   const seek = async (time: number) => {
-    if (soundRef.current) {
-      await soundRef.current.setPositionAsync(time * 1000);
-      setCurrentTime(time);
-    }
+    if (!soundRef.current) return;
+    await soundRef.current.setPositionAsync(time * 1000);
+    setCurrentTime(time);
   };
-
-  // 🔹 Limpiar al desmontar
-  useEffect(() => {
-    return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {});
-      }
-    };
-  }, []);
 
   return { seek };
 };
