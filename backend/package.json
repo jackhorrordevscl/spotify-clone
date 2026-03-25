@@ -8,8 +8,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
-    "build": "tsc",
-    "migrate": "prisma migrate deploy && prisma generate && tsc"
+    "build": "prisma generate --schema=prisma/schema.prisma && tsc",
+    "migrate": "prisma migrate deploy --schema=prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",

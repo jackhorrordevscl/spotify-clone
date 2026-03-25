@@ -7,7 +7,7 @@ echo "Running migrations..."
 MAX_RETRIES=5
 COUNT=0
 
-until npx prisma migrate deploy || [ $COUNT -eq $MAX_RETRIES ]; do
+until npx prisma migrate deploy --schema=prisma/schema.prisma || [ $COUNT -eq $MAX_RETRIES ]; do
   COUNT=$((COUNT + 1))
   echo "Migration failed, retry $COUNT/$MAX_RETRIES in 3s..."
   sleep 3
