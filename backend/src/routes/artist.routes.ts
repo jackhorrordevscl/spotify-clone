@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createArtist, // 👈 agregar
   getAllArtists,
   getArtistById,
   getAlbumsByArtist,
@@ -8,6 +9,10 @@ import {
 
 const router = Router();
 
+// 👉 Crear artista
+router.post("/", createArtist);
+
+// 👉 Obtener artistas
 router.get("/", getAllArtists);
 router.get("/:id", getArtistById);
 router.get("/:id/albums", getAlbumsByArtist);
