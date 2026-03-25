@@ -8,7 +8,7 @@ export const uploadSong = async (
   res: Response,
 ) => {
   try {
-    const { title, albumId } = req.body;
+    const { title, albumId, artistId } = req.body;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
     if (!title) {
@@ -50,17 +50,42 @@ export const uploadSong = async (
     });
 
     // 🔥 BUSCAR O CREAR ARTISTA
-    let artist = await prisma.artist.findFirst({
-      where: { name: user?.name },
-    });
+    let artist;
 
-    if (!artist) {
-      artist = await prisma.artist.create({
-        data: {
-          name: user?.name || "Unknown Artist",
-          avatarUrl: user?.avatarUrl || null,
-        },
+    if (artistId) {
+      // Caso 1: viene desde frontend
+      artist = await prisma.artist.findUnique({
+        where: { id: artistId },
       });
+
+      if (!artist) {
+        return res.status(404).json({ message: "Artista no encontrado" });
+      }
+    } else {
+      // Caso 2: fallback automático (tu lógica original)
+      artist = await prisma.artist.findFirst({
+        where: { name: user?.name },
+      });
+
+      if (!artist) {
+        artist = await prisma.artist.create({
+          data: {
+            name: user?.name || "Unknown Artist",
+            avatarUrl: user?.avatarUrl || null,
+          },
+        });
+      }
+    }
+
+    // 🔥 VALIDAR ÁLBUM (si viene)
+    if (albumId) {
+      const album = await prisma.album.findUnique({
+        where: { id: albumId },
+      });
+
+      if (!album) {
+        return res.status(404).json({ message: "Álbum no encontrado" });
+      }
     }
 
     // 🔥 CREAR CANCIÓN
